@@ -3,13 +3,14 @@ import requests
 import os
 import time
 from datetime import date
+from datetime import datetime
 currentDay = date.today()
 currentTime = time.strftime("%H-%M-%S")
 Bus = [
     #Platform A
     ["Buss nr", "Start stop",  "End stop",      "Start stop Latitude",  "Start stop Longitude", "End stop Latitude"   , "End stop Longitude"],
     ["23",      "Simensbråten", "Økern T",     "59.89563191255283",     "10.786966276240348" , "59.928373823342426"   , "10.806618014503611"], 
-    ["24",      "Brynseng T",  "Økern T",      "59.90939973882401",     "10.813734558568134",  "59.928373823342426"   , "10.806618014503611"], #Start stopp er permanent stengt. MÅ endres
+    ["23",      "Brynseng T",  "Økern T",      "59.90939973882401",     "10.813734558568134",  "59.928373823342426"   , "10.806618014503611"], #Start stopp er permanent stengt. MÅ endres
     ["60",      "Tonsenhagen",  "Økern T",      "59.947959839458",     "10.825428167640519",   "59.928373823342426"    , "10.806618014503611"],
 
     #Platform B
@@ -54,31 +55,33 @@ def GetData(HEAD, BusArray):
                 mode
                 distance
                 line {
-                publicCode
+                    publicCode
                 authority {
                     name
                 }
                 }
                 fromEstimatedCall {
-                quay {
-                    name
-                }
-                aimedDepartureTime
-                expectedDepartureTime
+                    quay {
+                        name
+                    }
+                    aimedDepartureTime
+                    expectedDepartureTime
                 }
                 toEstimatedCall {
-                quay {
-                    name
+                    quay {
+                        name
+                    }
+                    cancellation
+                    aimedDepartureTime
+                    expectedDepartureTime
                 }
-                aimedDepartureTime
-                expectedDepartureTime
-                }
+
                 intermediateEstimatedCalls {
-                aimedDepartureTime
-                expectedDepartureTime
-                quay {
-                    name
-                }
+                    aimedDepartureTime
+                    expectedDepartureTime
+                    quay {
+                        name
+                    }
                 }
             }
             }
@@ -102,6 +105,59 @@ def GetData(HEAD, BusArray):
 ##################################################################################
 ##################################################################################
 ##################################################################################
+Arr_len = len(Bus)
+DataExports = []
+CurrentKey = 1
+
+
+while CurrentKey < Arr_len:
+    CurrentBus = Bus[CurrentKey]
+    time.sleep(2)   
+    savedData = GetData(HEAD, CurrentBus) 
+    PublicBusCode = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["line"]["publicCode"]                                       #23, 60
+    FromBusStop = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["quay"]["name"]                          #Simsenbråten, Økern, ulven torg
+    ToBusStop = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["quay"]["name"]                              #Økern T
+    AimedDepartureTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["aimedDepartureTime"]             #2023-10-30T17:50:00+01:00
+    ExpectedDepartureTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["expectedDepartureTime"]       #2023-10-30T18:00:00+01:00
+    DeltaPredictedDepartureTime = str(datetime.fromisoformat(ExpectedDepartureTime) - datetime.fromisoformat(AimedDepartureTime))       #Delta of Expected and Predicted times
+    ActualDepartureTime = -1                                                                                                            #2023-10-30T18:15:00+01:00 or -1 if undefined
+    DeltaActualDepartureTime = -1
+    AimedArrivalTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["aimedDepartureTime"] 
+    ExpectedArrivalTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["expectedDepartureTime"] 
+    DeltaPredictedArrivalTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(AimedArrivalTime))
+    ActualArrivalTime = -1 
+    DeltaActualArrivalTime = -1
+    IsCancelled = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["cancellation"]                            #Returns true if route was cancelled
+
+    Mode = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["mode"]                                                              #metro, bus etc
+    Authority = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["line"]["authority"]["name"]
+
+    DataExport = {
+        "PublicBusCode": PublicBusCode,
+        "FromBusStop":FromBusStop,
+        "ToBusStop": ToBusStop, 
+        "AimedDepartureTime": AimedDepartureTime, 
+        "ExpectedDepartureTime": ExpectedDepartureTime, 
+        "DeltaPredictedDepartureTime" : DeltaPredictedDepartureTime,
+        "ActualDepartureTime": ActualDepartureTime,
+        "DeltaActualDepartureTime": DeltaActualDepartureTime,
+        "AimedArrivalTime" : AimedArrivalTime,
+        "ExpectedArrivalTime": ExpectedArrivalTime,
+        "DeltaPredictedArrivalTime": DeltaPredictedArrivalTime,
+        "ActualArrivalTime": ActualArrivalTime,
+        "DeltaActualArrivalTime" : DeltaActualArrivalTime,
+        "IsCancelled": IsCancelled,
+        "Mode/Authority": Mode + " / " + Authority, 
+        "Debug":CurrentBus[0] + " " +  CurrentBus[1]
+    }
+    DataExports.append(DataExport)
+    os.system('cls')
+    print("Checking " + str(CurrentKey) + "/ " + str(Arr_len -1) + " | " + FromBusStop)
+
+    CurrentKey += 1
+
+
+
 
 
 
@@ -111,6 +167,7 @@ if not os.path.exists(filepath):
    os.makedirs(filepath)
 
 currentFileLoc = str(filepath + filenames)
-with open(currentFileLoc, 'w') as f:
-    f.write(json.dumps(GetData(HEAD, Bus[1])))
+with open(currentFileLoc, "w", encoding="utf-8") as json_file:
+    #json.dump(DataExports, json_file, ensure_ascii=False)
+    json.dump(DataExports, json_file, ensure_ascii=False, indent=4) #This one makes text in json more readable
 
