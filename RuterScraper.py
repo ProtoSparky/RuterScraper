@@ -7,9 +7,9 @@ currentDay = date.today()
 currentTime = time.strftime("%H-%M-%S")
 Bus = [
     #Platform A
-    ["Buss nr", "Start stop",  "Slutt stop",  "Start stop Latitude",  "Start stop Longitude", "Slutt stop Latitude"  , "Slutt stop Longitude"],
-    ["23",      "Simensbråten", "Økern T",     "59.89563191255283",     "10.786966276240348" ,  "59.928373823342426"   , "10.806618014503611"], 
-    ["24",      "Brynseng T",  "Økern T",      "59.90939973882401",     "10.813734558568134",   "59.928373823342426"   , "10.806618014503611"], #Start stopp er permanent stengt. MÅ endres
+    ["Buss nr", "Start stop",  "End stop",      "Start stop Latitude",  "Start stop Longitude", "End stop Latitude"   , "End stop Longitude"],
+    ["23",      "Simensbråten", "Økern T",     "59.89563191255283",     "10.786966276240348" , "59.928373823342426"   , "10.806618014503611"], 
+    ["24",      "Brynseng T",  "Økern T",      "59.90939973882401",     "10.813734558568134",  "59.928373823342426"   , "10.806618014503611"], #Start stopp er permanent stengt. MÅ endres
     ["60",      "Tonsenhagen",  "Økern T",      "59.947959839458",     "10.825428167640519",   "59.928373823342426"    , "10.806618014503611"],
 
     #Platform B
@@ -21,29 +21,28 @@ Bus = [
 
 
 
-
 URL = "https://api.entur.io/journey-planner/v3/graphql"
 HEAD = {
     "ET-Client-Name": "ProtoSparky-RuterEkspirment",
     "Content-Type": "application/json"
 }
 
-def GetData(HEAD, StartLat, StartLong):
+def GetData(HEAD, BusArray):
     graphql_query = {
         "query": """
         {
         trip(
             to: {
             coordinates: {
-                latitude: 59.928373823342426
-                longitude: 10.806618014503611
+                latitude: """ + BusArray[5] +  """
+                longitude: """ + BusArray[6] + """
             }
             },
             numTripPatterns: 2,
             from: {
             coordinates: {
-                latitude: """ + StartLat + """
-                longitude: """ + StartLong + """
+                latitude: """ + BusArray[3] + """
+                longitude: """ + BusArray[4] + """
             }
             }
         ) {
@@ -100,8 +99,11 @@ def GetData(HEAD, StartLat, StartLong):
 
     except Exception as e:
         print("An error occurred:", str(e))
+##################################################################################
+##################################################################################
+##################################################################################
 
-#print(GetData(graphql_query,HEAD))
+
 
 filepath  = "./SavedArea/" + str(currentDay)
 filenames =  "/" + currentTime + ".json"
@@ -110,4 +112,5 @@ if not os.path.exists(filepath):
 
 currentFileLoc = str(filepath + filenames)
 with open(currentFileLoc, 'w') as f:
-    f.write(json.dumps(GetData(HEAD, "59.89563191255283","10.786966276240348")))
+    f.write(json.dumps(GetData(HEAD, Bus[1])))
+
