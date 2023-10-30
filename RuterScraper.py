@@ -1,5 +1,6 @@
 import json 
 import requests
+import os
 Bus = [
     #Platform A
     ["Buss nr", "Start stop",  "Slutt stop",  "Start stop Latitude",  "Start stop Longitude", "Slutt stop Latitude"  , "Slutt stop Longitude"],
@@ -15,13 +16,90 @@ Bus = [
 ]
 
 
-apiURL = "https://api.entur.io/journey-planner/v3/graphql"
-jcode = "{trip(to:{coordinates:{latitude:59.928373823342426 longitude:10.806618014503611}}numTripPatterns:2 from:{coordinates:{latitude:59.89563191255283 longitude:10.786966276240348}}){tripPatterns{startTime expectedEndTime walkDistance legs{mode distance line{publicCode authority{name}}fromEstimatedCall{quay{name}aimedDepartureTime expectedDepartureTime}toEstimatedCall{quay{name}aimedDepartureTime expectedDepartureTime}intermediateEstimatedCalls{aimedDepartureTime expectedDepartureTime quay{name}}}}}}"
 
 
-response = requests.get(apiURL,jcode)
-if response.status_code == 200:
-    data = response.text
-    print(data)
-else:
-    print(f"Request failed with status code {response.status_code}")
+URL = "https://api.entur.io/journey-planner/v3/graphql"
+HEAD = {
+    "ET-Client-Name": "ProtoSparky-RuterEkspirment",
+    "Content-Type": "application/json"
+}
+
+graphql_query = {
+    "query": """
+    {
+    trip(
+        to: {
+        coordinates: {
+            latitude: 59.928373823342426
+            longitude: 10.806618014503611
+        }
+        },
+        numTripPatterns: 2,
+        from: {
+        coordinates: {
+            latitude: 59.89563191255283
+            longitude: 10.786966276240348
+        }
+        }
+    ) {
+        tripPatterns {
+        startTime
+        expectedEndTime
+        walkDistance
+        legs {
+            mode
+            distance
+            line {
+            publicCode
+            authority {
+                name
+            }
+            }
+            fromEstimatedCall {
+            quay {
+                name
+            }
+            aimedDepartureTime
+            expectedDepartureTime
+            }
+            toEstimatedCall {
+            quay {
+                name
+            }
+            aimedDepartureTime
+            expectedDepartureTime
+            }
+            intermediateEstimatedCalls {
+            aimedDepartureTime
+            expectedDepartureTime
+            quay {
+                name
+            }
+            }
+        }
+        }
+    }
+    }
+    """
+}
+def GetData(graphql_query,HEAD):
+    query_json = json.dumps(graphql_query)
+    try:
+        response = requests.post(URL, headers=HEAD, data=query_json)
+
+        if response.status_code == 200:            
+            #print("Response:", response.json())
+            return response.json()
+        else:
+            #print("Request failed with status code:", response.status_code)
+            return response.status_code
+
+    except Exception as e:
+        print("An error occurred:", str(e))
+
+#print(GetData(graphql_query,HEAD))
+
+
+currentFileLoc = str('./SavedArea/' + "10" +'.json')
+with open(currentFileLoc, 'w') as f:
+    f.write(json.dumps(GetData(graphql_query,HEAD)))
