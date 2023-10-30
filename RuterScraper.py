@@ -1,6 +1,10 @@
 import json 
 import requests
 import os
+import time
+from datetime import date
+currentDay = date.today()
+currentTime = time.strftime("%H-%M-%S")
 Bus = [
     #Platform A
     ["Buss nr", "Start stop",  "Slutt stop",  "Start stop Latitude",  "Start stop Longitude", "Slutt stop Latitude"  , "Slutt stop Longitude"],
@@ -24,65 +28,65 @@ HEAD = {
     "Content-Type": "application/json"
 }
 
-graphql_query = {
-    "query": """
-    {
-    trip(
-        to: {
-        coordinates: {
-            latitude: 59.928373823342426
-            longitude: 10.806618014503611
+def GetData(HEAD, StartLat, StartLong):
+    graphql_query = {
+        "query": """
+        {
+        trip(
+            to: {
+            coordinates: {
+                latitude: 59.928373823342426
+                longitude: 10.806618014503611
+            }
+            },
+            numTripPatterns: 2,
+            from: {
+            coordinates: {
+                latitude: """ + StartLat + """
+                longitude: """ + StartLong + """
+            }
+            }
+        ) {
+            tripPatterns {
+            startTime
+            expectedEndTime
+            walkDistance
+            legs {
+                mode
+                distance
+                line {
+                publicCode
+                authority {
+                    name
+                }
+                }
+                fromEstimatedCall {
+                quay {
+                    name
+                }
+                aimedDepartureTime
+                expectedDepartureTime
+                }
+                toEstimatedCall {
+                quay {
+                    name
+                }
+                aimedDepartureTime
+                expectedDepartureTime
+                }
+                intermediateEstimatedCalls {
+                aimedDepartureTime
+                expectedDepartureTime
+                quay {
+                    name
+                }
+                }
+            }
+            }
         }
-        },
-        numTripPatterns: 2,
-        from: {
-        coordinates: {
-            latitude: 59.89563191255283
-            longitude: 10.786966276240348
         }
-        }
-    ) {
-        tripPatterns {
-        startTime
-        expectedEndTime
-        walkDistance
-        legs {
-            mode
-            distance
-            line {
-            publicCode
-            authority {
-                name
-            }
-            }
-            fromEstimatedCall {
-            quay {
-                name
-            }
-            aimedDepartureTime
-            expectedDepartureTime
-            }
-            toEstimatedCall {
-            quay {
-                name
-            }
-            aimedDepartureTime
-            expectedDepartureTime
-            }
-            intermediateEstimatedCalls {
-            aimedDepartureTime
-            expectedDepartureTime
-            quay {
-                name
-            }
-            }
-        }
-        }
+        """
     }
-    }
-    """
-}
-def GetData(graphql_query,HEAD):
     query_json = json.dumps(graphql_query)
     try:
         response = requests.post(URL, headers=HEAD, data=query_json)
@@ -91,15 +95,19 @@ def GetData(graphql_query,HEAD):
             #print("Response:", response.json())
             return response.json()
         else:
-            #print("Request failed with status code:", response.status_code)
-            return response.status_code
+            print("Request failed with status code:", response.status_code)
+            
 
     except Exception as e:
         print("An error occurred:", str(e))
 
 #print(GetData(graphql_query,HEAD))
 
+filepath  = "./SavedArea/" + str(currentDay)
+filenames =  "/" + currentTime + ".json"
+if not os.path.exists(filepath):
+   os.makedirs(filepath)
 
-currentFileLoc = str('./SavedArea/' + "10" +'.json')
+currentFileLoc = str(filepath + filenames)
 with open(currentFileLoc, 'w') as f:
-    f.write(json.dumps(GetData(graphql_query,HEAD)))
+    f.write(json.dumps(GetData(HEAD, "59.89563191255283","10.786966276240348")))
