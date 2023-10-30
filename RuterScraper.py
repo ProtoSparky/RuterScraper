@@ -131,6 +131,7 @@ while CurrentKey < Arr_len:
 
     Mode = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["mode"]                                                              #metro, bus etc
     Authority = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["line"]["authority"]["name"]
+    TotalTravelTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(ExpectedDepartureTime))
 
     DataExport = {
         "PublicBusCode": PublicBusCode,
@@ -147,6 +148,7 @@ while CurrentKey < Arr_len:
         "ActualArrivalTime": ActualArrivalTime,
         "DeltaActualArrivalTime" : DeltaActualArrivalTime,
         "IsCancelled": IsCancelled,
+        "TotalTravelTime":TotalTravelTime, 
         "Mode/Authority": Mode + " / " + Authority, 
         "Debug":CurrentBus[0] + " " +  CurrentBus[1]
     }
