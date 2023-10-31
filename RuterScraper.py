@@ -4,11 +4,14 @@ import os
 import time
 from datetime import date
 from datetime import datetime
+import csv
 dateNow = datetime.now()
 currentDay = date.today()
 currentTime = time.strftime("%H-%M-%S")
 currentDayName = dateNow.strftime('%A')
 shortDayName = currentDayName[0:3]
+WeekArray = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+WeekArrayLength = len(WeekArray)
 Bus = [
     #Platform A
     ["Buss nr", "Start stop",  "End stop",      "Start stop Latitude",  "Start stop Longitude", "End stop Latitude"   , "End stop Longitude"],
@@ -31,6 +34,10 @@ HEAD = {
     "Content-Type": "application/json"
 }
 
+##################################################################################
+##################################################################################
+##################################################################################
+#Api get
 def GetData(HEAD, BusArray):
     graphql_query = {
         "query": """
@@ -108,7 +115,7 @@ def GetData(HEAD, BusArray):
 ##################################################################################
 ##################################################################################
 ##################################################################################
-
+#Write chunk. Gets data from api, writes to file
 def WriteData():
     Arr_len = len(Bus)
     DataExports = []
@@ -178,22 +185,40 @@ def WriteData():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+def NormalDistWeekRaw():
+    WeekArrPointer = 0
+    CurrentWeek = WeekArray[WeekArrPointer]
+    FileIndexLoc = "./SavedArea/normalDist/weekraw/FileIndex.json"
+    FileIndexData = open(FileIndexLoc)
+    FileIndex = json.load(FileIndexData)
+    FileIndexArr = FileIndex["FileLocation"]
+    print(FileIndexArr)
 
+    #while WeekArrPointer < WeekArrayLength:
+
+        
+
+    
+
+    
+##################################################################################
+##################################################################################
+##################################################################################
+'''
+#Timer chunk
 days2run = 1
 times2run = (((days2run * 60) * 24) * days2run)
 CurrentRun = 0
 while CurrentRun < times2run:
     os.system('cls')
-    WriteData()
     CurrentRun += 1
     os.system('cls')
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
     time.sleep(60)   
-
+'''
 ##################################################################################
 ##################################################################################
 ##################################################################################
 
-def NormalDist():
-    print("not added")
+NormalDistWeekRaw()
