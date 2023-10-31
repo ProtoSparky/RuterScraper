@@ -186,15 +186,17 @@ def WriteData():
 ##################################################################################
 ##################################################################################
 def NormalDistWeekRaw():
-    WeekArrPointer = 0
-    CurrentWeek = WeekArray[WeekArrPointer]
     FileIndexLoc = "./SavedArea/normalDist/weekraw/FileIndex.json"
     FileIndexData = open(FileIndexLoc)
     FileIndex = json.load(FileIndexData)
     FileIndexArr = FileIndex["FileLocation"]
     print(FileIndexArr)
 
-    #while WeekArrPointer < WeekArrayLength:
+    WeekArrPointer = 0
+    while WeekArrPointer < WeekArrayLength:
+        CurrentWeek = WeekArray[WeekArrPointer]
+        print("a")
+        WeekArrPointer += 1
 
         
 
