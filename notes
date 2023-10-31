@@ -1,0 +1,8 @@
+normal distrubution for: 
+	days 	|	collumn = hours (average lateness pr hour in 24h window)
+	weekdays| 	collumn = day (average lateness pr day in 7 day window) 
+
+"Who's the latest"| collumn= bus line + direction (Shows the latest bus to arrive at destination) 
+
+T test | all bus lines side by side
+	

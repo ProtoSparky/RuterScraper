@@ -4,8 +4,11 @@ import os
 import time
 from datetime import date
 from datetime import datetime
+dateNow = datetime.now()
 currentDay = date.today()
 currentTime = time.strftime("%H-%M-%S")
+currentDayName = dateNow.strftime('%A')
+shortDayName = currentDayName[0:3]
 Bus = [
     #Platform A
     ["Buss nr", "Start stop",  "End stop",      "Start stop Latitude",  "Start stop Longitude", "End stop Latitude"   , "End stop Longitude"],
@@ -163,7 +166,7 @@ def WriteData():
 
 
 
-    filepath  = "./SavedArea/raw/" + str(currentDay)
+    filepath  = "./SavedArea/raw/" + shortDayName + "-"+ str(currentDay)
     filenames =  "/" + currentTime + ".json"
     if not os.path.exists(filepath):
         os.makedirs(filepath)
@@ -187,6 +190,7 @@ while CurrentRun < times2run:
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
     time.sleep(60)   
+
 ##################################################################################
 ##################################################################################
 ##################################################################################
