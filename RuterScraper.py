@@ -105,71 +105,88 @@ def GetData(HEAD, BusArray):
 ##################################################################################
 ##################################################################################
 ##################################################################################
-Arr_len = len(Bus)
-DataExports = []
-CurrentKey = 1
+
+def WriteData():
+    Arr_len = len(Bus)
+    DataExports = []
+    CurrentKey = 1
+    while CurrentKey < Arr_len:
+        CurrentBus = Bus[CurrentKey]
+        time.sleep(2)   
+        savedData = GetData(HEAD, CurrentBus) 
+        PublicBusCode = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["line"]["publicCode"]                                       #23, 60
+        FromBusStop = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["quay"]["name"]                          #Simsenbråten, Økern, ulven torg
+        ToBusStop = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["quay"]["name"]                              #Økern T
+        AimedDepartureTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["aimedDepartureTime"]             #2023-10-30T17:50:00+01:00
+        ExpectedDepartureTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["expectedDepartureTime"]       #2023-10-30T18:00:00+01:00
+        DeltaPredictedDepartureTime = str(datetime.fromisoformat(ExpectedDepartureTime) - datetime.fromisoformat(AimedDepartureTime))       #Delta of Expected and Predicted times
+        ActualDepartureTime = -1                                                                                                            #2023-10-30T18:15:00+01:00 or -1 if undefined
+        DeltaActualDepartureTime = -1
+        AimedArrivalTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["aimedDepartureTime"] 
+        ExpectedArrivalTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["expectedDepartureTime"] 
+        DeltaPredictedArrivalTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(AimedArrivalTime))
+        ActualArrivalTime = -1 
+        DeltaActualArrivalTime = -1
+        IsCancelled = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["cancellation"]                            #Returns true if route was cancelled
+
+        Mode = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["mode"]                                                              #metro, bus etc
+        Authority = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["line"]["authority"]["name"]
+        TotalTravelTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(ExpectedDepartureTime))
+
+        DataExport = {
+            "PublicBusCode": PublicBusCode,
+            "FromBusStop":FromBusStop,
+            "ToBusStop": ToBusStop, 
+            "AimedDepartureTime": AimedDepartureTime, 
+            "ExpectedDepartureTime": ExpectedDepartureTime, 
+            "DeltaPredictedDepartureTime" : DeltaPredictedDepartureTime,
+            "ActualDepartureTime": ActualDepartureTime,
+            "DeltaActualDepartureTime": DeltaActualDepartureTime,
+            "AimedArrivalTime" : AimedArrivalTime,
+            "ExpectedArrivalTime": ExpectedArrivalTime,
+            "DeltaPredictedArrivalTime": DeltaPredictedArrivalTime,
+            "ActualArrivalTime": ActualArrivalTime,
+            "DeltaActualArrivalTime" : DeltaActualArrivalTime,
+            "IsCancelled": IsCancelled,
+            "TotalTravelTime":TotalTravelTime, 
+            "Mode/Authority": Mode + " / " + Authority, 
+            "Debug":CurrentBus[0] + " " +  CurrentBus[1]
+        }
+        DataExports.append(DataExport)
+        os.system('cls')
+        print("Checking " + str(CurrentKey) + "/ " + str(Arr_len -1) + " | " + FromBusStop)
+
+        CurrentKey += 1
 
 
-while CurrentKey < Arr_len:
-    CurrentBus = Bus[CurrentKey]
-    time.sleep(2)   
-    savedData = GetData(HEAD, CurrentBus) 
-    PublicBusCode = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["line"]["publicCode"]                                       #23, 60
-    FromBusStop = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["quay"]["name"]                          #Simsenbråten, Økern, ulven torg
-    ToBusStop = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["quay"]["name"]                              #Økern T
-    AimedDepartureTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["aimedDepartureTime"]             #2023-10-30T17:50:00+01:00
-    ExpectedDepartureTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["expectedDepartureTime"]       #2023-10-30T18:00:00+01:00
-    DeltaPredictedDepartureTime = str(datetime.fromisoformat(ExpectedDepartureTime) - datetime.fromisoformat(AimedDepartureTime))       #Delta of Expected and Predicted times
-    ActualDepartureTime = -1                                                                                                            #2023-10-30T18:15:00+01:00 or -1 if undefined
-    DeltaActualDepartureTime = -1
-    AimedArrivalTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["aimedDepartureTime"] 
-    ExpectedArrivalTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["expectedDepartureTime"] 
-    DeltaPredictedArrivalTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(AimedArrivalTime))
-    ActualArrivalTime = -1 
-    DeltaActualArrivalTime = -1
-    IsCancelled = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["cancellation"]                            #Returns true if route was cancelled
 
-    Mode = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["mode"]                                                              #metro, bus etc
-    Authority = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["line"]["authority"]["name"]
-    TotalTravelTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(ExpectedDepartureTime))
 
-    DataExport = {
-        "PublicBusCode": PublicBusCode,
-        "FromBusStop":FromBusStop,
-        "ToBusStop": ToBusStop, 
-        "AimedDepartureTime": AimedDepartureTime, 
-        "ExpectedDepartureTime": ExpectedDepartureTime, 
-        "DeltaPredictedDepartureTime" : DeltaPredictedDepartureTime,
-        "ActualDepartureTime": ActualDepartureTime,
-        "DeltaActualDepartureTime": DeltaActualDepartureTime,
-        "AimedArrivalTime" : AimedArrivalTime,
-        "ExpectedArrivalTime": ExpectedArrivalTime,
-        "DeltaPredictedArrivalTime": DeltaPredictedArrivalTime,
-        "ActualArrivalTime": ActualArrivalTime,
-        "DeltaActualArrivalTime" : DeltaActualArrivalTime,
-        "IsCancelled": IsCancelled,
-        "TotalTravelTime":TotalTravelTime, 
-        "Mode/Authority": Mode + " / " + Authority, 
-        "Debug":CurrentBus[0] + " " +  CurrentBus[1]
-    }
-    DataExports.append(DataExport)
+
+
+    filepath  = "./SavedArea/raw/" + str(currentDay)
+    filenames =  "/" + currentTime + ".json"
+    if not os.path.exists(filepath):
+        os.makedirs(filepath)
+
+    currentFileLoc = str(filepath + filenames)
+    with open(currentFileLoc, "w", encoding="utf-8") as json_file:
+        #json.dump(DataExports, json_file, ensure_ascii=False)
+        json.dump(DataExports, json_file, ensure_ascii=False, indent=4) #This one makes text in json more readable
+##################################################################################
+##################################################################################
+##################################################################################
+
+days2run = 1
+times2run = (((days2run * 60) * 24) * days2run)
+CurrentRun = 0
+while CurrentRun < times2run:
     os.system('cls')
-    print("Checking " + str(CurrentKey) + "/ " + str(Arr_len -1) + " | " + FromBusStop)
-
-    CurrentKey += 1
-
-
-
-
-
-
-filepath  = "./SavedArea/" + str(currentDay)
-filenames =  "/" + currentTime + ".json"
-if not os.path.exists(filepath):
-   os.makedirs(filepath)
-
-currentFileLoc = str(filepath + filenames)
-with open(currentFileLoc, "w", encoding="utf-8") as json_file:
-    #json.dump(DataExports, json_file, ensure_ascii=False)
-    json.dump(DataExports, json_file, ensure_ascii=False, indent=4) #This one makes text in json more readable
-
+    WriteData()
+    CurrentRun += 1
+    os.system('cls')
+    print("sleep for 60s")
+    print("current run: " + str(CurrentRun))
+    time.sleep(60)   
+##################################################################################
+##################################################################################
+##################################################################################
