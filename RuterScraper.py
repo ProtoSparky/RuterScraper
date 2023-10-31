@@ -191,7 +191,6 @@ def NormalDistWeekRaw():
     FileIndex = json.load(FileIndexData)
     FileIndexArr = FileIndex["FileLocation"]
     print(FileIndexArr)
-
     WeekArrPointer = 0
     while WeekArrPointer < WeekArrayLength:
         CurrentWeek = WeekArray[WeekArrPointer]
@@ -213,6 +212,7 @@ times2run = (((days2run * 60) * 24) * days2run)
 CurrentRun = 0
 while CurrentRun < times2run:
     os.system('cls')
+    WriteData()
     CurrentRun += 1
     os.system('cls')
     print("sleep for 60s")
