@@ -5,6 +5,9 @@ import time
 from datetime import date
 from datetime import datetime
 import csv
+import re 
+
+
 dateNow = datetime.now()
 currentDay = date.today()
 currentTime = time.strftime("%H-%M-%S")
@@ -186,16 +189,31 @@ def WriteData():
 ##################################################################################
 ##################################################################################
 def NormalDistWeekRaw():
-    FileIndexLoc = "./SavedArea/normalDist/weekraw/FileIndex.json"
+    FileIndexLoc = "./SavedArea/normalDist/WeekRaw/FileIndex.json"
     FileIndexData = open(FileIndexLoc)
     FileIndex = json.load(FileIndexData)
     FileIndexArr = FileIndex["FileLocation"]
-    print(FileIndexArr)
+    #print(FileIndexArr)
+
+
+    DirPath = "./SavedArea/raw"
+    Dirs = [d for d in os.listdir(DirPath) if os.path.isdir(os.path.join(DirPath, d))]    
     WeekArrPointer = 0
+    FoundDirs = []
     while WeekArrPointer < WeekArrayLength:
         CurrentWeek = WeekArray[WeekArrPointer]
-        print("a")
+        for CurrentDir in Dirs:
+            if CurrentWeek in CurrentDir:
+                FoundDirs[WeekArrPointer] = CurrentDir
+            else:
+                FoundDirs[WeekArrPointer] = 0
+
+        print(FoundDirs)
+
+            
+
         WeekArrPointer += 1
+        #print(FoundDirs)
 
         
 
