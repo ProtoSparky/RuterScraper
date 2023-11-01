@@ -46,3 +46,10 @@ body{
     width: 90%;
     height: 400;
 }
+
+#download_box{
+    left: 5%;
+    top: 927;
+    width: 90%;
+    height: 250;
+}
