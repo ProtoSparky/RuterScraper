@@ -1,0 +1,48 @@
+body{
+    overflow-x: hidden;
+}
+
+#background{
+    position: absolute;
+    height: 200%;
+    width: auto;
+    left: -20%;
+    z-index: -10;
+    border: 0;
+    top: 0;
+}
+
+.box{
+    position: absolute;
+    background-color: white;
+    border: 0;
+    border-radius: 25px;
+}
+
+#timer_box{
+    left: 5%;
+    top: 40;
+    width: 90%;
+    height: 67;
+}
+
+#t-test_box{
+    left: 5%;
+    top: 147;
+    width: 42.5%;
+    height: 300;
+}
+
+#average_box{
+    right: 5%;
+    top: 147;
+    width: 42.5%;
+    height: 300;
+}
+
+#table_box{
+    left: 5%;
+    top: 487;
+    width: 90%;
+    height: 400;
+}
