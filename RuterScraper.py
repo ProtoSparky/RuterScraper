@@ -119,6 +119,7 @@ def GetData(HEAD, BusArray):
 ##################################################################################
 ##################################################################################
 #Write chunk. Gets data from api, writes to file
+
 def WriteData():
     Arr_len = len(Bus)
     DataExports = []
@@ -188,44 +189,29 @@ def WriteData():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+
+
 def NormalDistWeekRaw():
     FileIndexLoc = "./SavedArea/normalDist/WeekRaw/FileIndex.json"
     FileIndexData = open(FileIndexLoc)
     FileIndex = json.load(FileIndexData)
     FileIndexArr = FileIndex["FileLocation"]
     #print(FileIndexArr)
-
-
-    DirPath = "./SavedArea/raw"
+    DirPath = "./SavedArea/raw"    
+    Dirs = [d for d in os.listdir(DirPath) if os.path.isdir(os.path.join(DirPath, d))] 
+    for CurrentFileIndex in FileIndexArr: 
+        CurrentFileName = CurrentFileIndex["FileLoc"]
+        for CurrentFileDir in Dirs:
+            NewFileDir = DirPath + "/" + CurrentFileDir
+            NewFileNameArr = os.listdir(NewFileDir)
+            for CurrentFile in NewFileNameArr:
+                if CurrentFile == CurrentFileName:
+                    print("match")     
+                else:
+                    print("not match") #This is where shit should be saved and kept track of
     
-    Dirs = [d for d in os.listdir(DirPath) if os.path.isdir(os.path.join(DirPath, d))]    
-    WeekArrPointer = 0
-    while WeekArrPointer < WeekArrayLength:
-        CurrentWeek = WeekArray[WeekArrPointer]
-        for CurrentDir in Dirs:
-            if CurrentWeek in CurrentDir:
-                #If found a directory that contains week numbers from list, open it and read contents
-                NewDirPath = DirPath + "/" + CurrentDir + "/"
-                DirsInCurrentWeek = os.listdir(NewDirPath)
-                #This has to be rewritten as i messed up the order for which data gets gathered
-                for CurrentDataPoint in DirsInCurrentWeek:
-                    for CurrentFileIndex in FileIndexArr: 
-                        CurrentFileIndexText = CurrentFileIndex["FileLoc"]
-                        if CurrentDataPoint == CurrentFileIndexText: 
-                            print("match found")
-                        else:
-                            print("not implemented")
-                            #this is where data should be copied to Data.csv, and marked in FileIndex.json
-                        
-                #print(FileIndexArr[0]["FileLoc"])
-            
 
-            
 
-        WeekArrPointer += 1
-        #print(FoundDirs)
-
-        
 
     
 
