@@ -209,7 +209,19 @@ def NormalDistWeekRaw():
                     print("match")     
                 else:
                     print("not match") #This is where shit should be saved and kept track of
-    
+                    #keep track of new data
+                    AppendFileData = {
+                        "FileLoc": CurrentFile
+                    }
+                    with open(FileIndexLoc, "r+", encoding="utf-8") as json_file:
+                        CurrentFileIndexData = json.load(json_file)
+                        CurrentFileIndexData["FileLocation"].append(AppendFileData)
+                        json_file.seek(0)
+                        json.dump(CurrentFileIndexData, json_file , ensure_ascii=False, indent=4)
+                    #keep track of new data
+                    #Write new data to csv
+                    
+
 
 
 
