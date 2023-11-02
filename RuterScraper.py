@@ -178,7 +178,7 @@ def WriteData():
 
 
     filepath  = "./SavedArea/raw/" + shortDayName + "-"+ str(currentDay)
-    filenames =  "/" + currentTime + ".json"
+    filenames =  "/" + shortDayName + "-" + currentTime + ".json"
     if not os.path.exists(filepath):
         os.makedirs(filepath)
 
@@ -206,9 +206,9 @@ def NormalDistWeekRaw():
             NewFileNameArr = os.listdir(NewFileDir)
             for CurrentFile in NewFileNameArr:
                 if CurrentFile == CurrentFileName:
-                    print("match")     
+                    print("match -- Skipping")     
                 else:
-                    print("not match") #This is where shit should be saved and kept track of
+                     #This is where shit should be saved and kept track of
                     #keep track of new data
                     AppendFileData = {
                         "FileLoc": CurrentFile
@@ -220,7 +220,12 @@ def NormalDistWeekRaw():
                         json.dump(CurrentFileIndexData, json_file , ensure_ascii=False, indent=4)
                     #keep track of new data
                     #Write new data to csv
-                    
+                    for SelectedWeek in WeekArray:
+                        print(SelectedWeek)
+                        #Not implemented
+
+
+
 
 
 
