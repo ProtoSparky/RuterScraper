@@ -190,49 +190,48 @@ def WriteData():
 ##################################################################################
 ##################################################################################
 
-
 def NormalDistWeekRaw():
-    FileIndexLoc = "./SavedArea/normalDist/WeekRaw/FileIndex.json"
-    FileIndexData = open(FileIndexLoc)
-    FileIndex = json.load(FileIndexData)
-    FileIndexArr = FileIndex["FileLocation"]
-    #print(FileIndexArr)
-    DirPath = "./SavedArea/raw"    
-    Dirs = [d for d in os.listdir(DirPath) if os.path.isdir(os.path.join(DirPath, d))] 
-    for CurrentFileIndex in FileIndexArr: 
-        CurrentFileName = CurrentFileIndex["FileLoc"]
-        for CurrentFileDir in Dirs:
-            NewFileDir = DirPath + "/" + CurrentFileDir
-            NewFileNameArr = os.listdir(NewFileDir)
-            for CurrentFile in NewFileNameArr:
-                if CurrentFile == CurrentFileName:
-                    print("match -- Skipping")     
-                else:
-                     #This is where shit should be saved and kept track of
-                    #keep track of new data
-                    AppendFileData = {
-                        "FileLoc": CurrentFile
-                    }
-                    with open(FileIndexLoc, "r+", encoding="utf-8") as json_file:
-                        CurrentFileIndexData = json.load(json_file)
-                        CurrentFileIndexData["FileLocation"].append(AppendFileData)
-                        json_file.seek(0)
-                        json.dump(CurrentFileIndexData, json_file , ensure_ascii=False, indent=4)
-                    #keep track of new data
-                    #Write new data to csv
-                    for SelectedWeek in WeekArray:
-                        print(SelectedWeek)
-                        #Not implemented
+    raw_directory = "./SavedArea/raw"
+    data_directory = "./SavedArea/normalDist/WeekRaw/"
+    file_index_file = os.path.join(data_directory, "FileIndex.json")
+    data_json_file = os.path.join(data_directory, "data.json")
+    data = {}
 
-
-
-
-
-
-
+    if os.path.exists(file_index_file):
+        with open(file_index_file, "r") as index_file:
+            data = json.load(index_file)
     
-
+    # Get all json files in RAW
+    for root, _, files in os.walk(raw_directory):
+        for file in files:
+            if file.endswith(".json"):
+                file_path = os.path.join(root, file)
+                
+                # Check if data was written before this
+                if file_path in data.get("FileLocation", []):
+                    continue
+                
+                day_name = os.path.basename(root)
+                
+                # Read json data form raw dir data
+                with open(file_path, "r") as json_file:
+                    json_data = json.load(json_file)
+                    for bus_info in json_data:
+                        delta_departure_time = bus_info.get("DeltaPredictedDepartureTime")
+                        if delta_departure_time is not None:
+                            data.setdefault(day_name, []).append(delta_departure_time)
+                
+                data.setdefault("FileLocation", []).append(file_path)
     
+    # Keep track of data written 
+    with open(file_index_file, "w") as index_file:
+        json.dump(data, index_file, indent=4)
+        
+    # Save new data
+    if "FileLocation" in data:
+        data.pop("FileLocation")
+    with open(data_json_file, "w") as json_file:
+        json.dump(data, json_file, indent=4)    
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -253,5 +252,4 @@ while CurrentRun < times2run:
 ##################################################################################
 ##################################################################################
 ##################################################################################
-
 NormalDistWeekRaw()
