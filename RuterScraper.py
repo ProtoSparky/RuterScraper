@@ -4,8 +4,8 @@ import os
 import time
 from datetime import date
 from datetime import datetime
-import csv
-import re 
+from collections import defaultdict
+from datetime import datetime, timedelta
 
 
 dateNow = datetime.now()
@@ -13,7 +13,7 @@ currentDay = date.today()
 currentTime = time.strftime("%H-%M-%S")
 currentDayName = dateNow.strftime('%A')
 shortDayName = currentDayName[0:3]
-WeekArray = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+WeekArray = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 WeekArrayLength = len(WeekArray)
 Bus = [
     #Platform A
@@ -119,7 +119,6 @@ def GetData(HEAD, BusArray):
 ##################################################################################
 ##################################################################################
 #Write chunk. Gets data from api, writes to file
-
 def WriteData():
     Arr_len = len(Bus)
     DataExports = []
@@ -189,7 +188,6 @@ def WriteData():
 ##################################################################################
 ##################################################################################
 ##################################################################################
-
 def NormalDistWeekRaw():
     raw_directory = "./SavedArea/raw"
     data_directory = "./SavedArea/normalDist/WeekRaw/"
@@ -231,7 +229,44 @@ def NormalDistWeekRaw():
     if "FileLocation" in data:
         data.pop("FileLocation")
     with open(data_json_file, "w") as json_file:
-        json.dump(data, json_file, indent=4)    
+        json.dump(data, json_file, indent=4)   
+
+##################################################################################
+##################################################################################
+##################################################################################
+def NormalDistWeek(): 
+    rawDistDir = "./SavedArea/normalDist/WeekRaw/data.json"
+    processedDistDir = "./SavedArea/normalDist/week/data.json"
+    
+    target_weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    # Read from rawDistDir
+    with open(rawDistDir, 'r') as raw_file:
+        raw_data = json.load(raw_file)
+    
+    # Create average for weekdays
+    weekday_averages = {weekday: 0 for weekday in target_weekdays}
+    count = defaultdict(int)  # count amount of weekdays
+    
+    # go trough that, and create average
+    for date, times in raw_data.items():
+        weekday = date.split('-')[0]
+        if weekday in target_weekdays:
+            for time in times:
+                # Parse as hours:minutes:seconds
+                hours, minutes, seconds = map(int, time.split(':'))
+                time_delta = timedelta(hours=hours, minutes=minutes, seconds=seconds)
+                weekday_averages[weekday] += time_delta.total_seconds()
+                count[weekday] += 1
+    
+    for weekday in target_weekdays:
+        if count[weekday] > 0:
+            average_seconds = weekday_averages[weekday] / count[weekday]
+            average_time = str(timedelta(seconds=average_seconds))
+            weekday_averages[weekday] = average_time
+    
+    with open(processedDistDir, 'w') as processed_file:
+        json.dump(weekday_averages, processed_file, indent=4)
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -243,13 +278,15 @@ CurrentRun = 0
 while CurrentRun < times2run:
     os.system('cls')
     WriteData()
-    CurrentRun += 1
+    NormalDistWeekRaw()
     os.system('cls')
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
-    time.sleep(60)   
+    time.sleep(60)  
+    CurrentRun += 1 
 '''
 ##################################################################################
 ##################################################################################
 ##################################################################################
-NormalDistWeekRaw()
+#NormalDistWeekRaw()
+NormalDistWeek()
