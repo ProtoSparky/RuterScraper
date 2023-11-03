@@ -168,14 +168,7 @@ def WriteData():
         DataExports.append(DataExport)
         os.system('cls')
         print("Checking " + str(CurrentKey) + "/ " + str(Arr_len -1) + " | " + FromBusStop)
-
         CurrentKey += 1
-
-
-
-
-
-
     filepath  = "./SavedArea/raw/" + shortDayName + "-"+ str(currentDay)
     filenames =  "/" + shortDayName + "-" + currentTime + ".json"
     if not os.path.exists(filepath):
@@ -188,6 +181,7 @@ def WriteData():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+#Converts data chunks to readable json
 def NormalDistWeekRaw():
     raw_directory = "./SavedArea/raw"
     data_directory = "./SavedArea/normalDist/WeekRaw/"
@@ -234,10 +228,10 @@ def NormalDistWeekRaw():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+# converts readable json to average lateness for each day in week
 def NormalDistWeek(): 
     rawDistDir = "./SavedArea/normalDist/WeekRaw/data.json"
-    processedDistDir = "./SavedArea/normalDist/week/data.json"
-    
+    processedDistDir = "./SavedArea/normalDist/week/data.json"    
     target_weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     # Read from rawDistDir
@@ -270,7 +264,59 @@ def NormalDistWeek():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+def NormalDistHourRaw():
+    RawData = "./SavedArea/raw"
+    SavedData = "./SavedArea/normalDist/day/data.json"
+    hour_averages = {}
+    # Loop trough RAW
+    for root, _, files in os.walk(RawData):
+        for file in files:
+            if file.endswith(".json"):
+                file_path = os.path.join(root, file)
+                # get hour form fileName
+                hour = file.split("-")[1]
+                # Round
+                hour = int(hour)
+                # Load data json
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+                # Create average based on time
+                total_duration = timedelta(0)
+                num_entries = len(data)                
+                for entry in data:
+                    delta_time_str = entry["DeltaPredictedDepartureTime"]
+                    parts = delta_time_str.split(":")
+                    if len(parts) == 3:
+                        hours, minutes, seconds = map(int, parts)
+                        total_duration += timedelta(hours=hours, minutes=minutes, seconds=seconds)                
+                average_duration = total_duration / num_entries
+                # add average to arr 
+                if hour in hour_averages:
+                    hour_averages[hour].append(average_duration)
+                else:
+                    hour_averages[hour] = [average_duration]
+    # get whole hour average
+    for hour, average_duration_list in hour_averages.items():
+        total_duration = sum(average_duration_list, timedelta(0))
+        average_duration = total_duration / len(average_duration_list)
+        hour_averages[hour] = str(average_duration)
+
+    # create file structure
+    result_data = {str(hour).zfill(2): average for hour, average in hour_averages.items()}
+    # Write to SavedData file
+    with open(SavedData, 'w') as f:
+        json.dump(result_data, f, indent=4)
+##################################################################################
+##################################################################################
+##################################################################################
+
+
+
+
 '''
+##################################################################################
+##################################################################################
+##################################################################################
 #Timer chunk
 days2run = 1
 times2run = (((days2run * 60) * 24) * days2run)
@@ -278,15 +324,12 @@ CurrentRun = 0
 while CurrentRun < times2run:
     os.system('cls')
     WriteData()
-    NormalDistWeekRaw()
     os.system('cls')
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
     time.sleep(60)  
     CurrentRun += 1 
-'''
 ##################################################################################
 ##################################################################################
 ##################################################################################
-#NormalDistWeekRaw()
-NormalDistWeek()
+    '''

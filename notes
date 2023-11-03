@@ -1,6 +1,6 @@
 normal distrubution for: 
-	days 	    |	collumn = hours (average lateness pr hour in 24h window) should see average lateness for said point in time
-	weekdays    | 	collumn = day (average lateness pr day in 7 day window)                                                         DONE
+	days 	    |	collumn = hours (average lateness pr hour in 24h window) should see average lateness for said point in time         DONE
+	weekdays    | 	collumn = day (average lateness pr day in 7 day window)                                                            DONE
 
 "Who's the latest"| collumn= bus line + direction (Shows the latest bus to arrive at destination) 
 
