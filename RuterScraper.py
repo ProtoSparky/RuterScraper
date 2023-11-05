@@ -33,7 +33,7 @@ Bus = [
 
 URL = "https://api.entur.io/journey-planner/v3/graphql"
 HEAD = {
-    "ET-Client-Name": "ProtoSparky-RuterEkspirment",
+    "ET-Client-Name": "Kuben Videregående Skole - 3STT ruter forsøk",
     "Content-Type": "application/json"
 }
 
@@ -264,6 +264,7 @@ def NormalDistWeek():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+#convert all data to normal dist for all hours 0-24
 def NormalDistHourRaw():
     RawData = "./SavedArea/raw"
     SavedData = "./SavedArea/normalDist/day/data.json"
@@ -309,9 +310,49 @@ def NormalDistHourRaw():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+def LatestPublicBusCode():
+    RawData = "./SavedArea/raw"
+    SavedData = "./SavedArea/latest/data.json"
 
+    # Initialize a dictionary to store the average DeltaPredictedDepartureTime for each PublicBusCode and FromBusStop
+    bus_code_and_stop_averages = defaultdict(list)
 
+    # Traverse the directories in RawData
+    for root, _, files in os.walk(RawData):
+        for file in files:
+            if file.endswith(".json"):
+                file_path = os.path.join(root, file)
 
+                # Load the JSON data from the file
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+
+                for entry in data:
+                    public_bus_code = entry["PublicBusCode"]
+                    from_bus_stop = entry["FromBusStop"]
+                    delta_time_str = entry["DeltaPredictedDepartureTime"]
+
+                    # Calculate the average DeltaPredictedDepartureTime for the bus code and FromBusStop
+                    parts = delta_time_str.split(":")
+                    if len(parts) == 3:
+                        hours, minutes, seconds = map(int, parts)
+                        total_seconds = hours * 3600 + minutes * 60 + seconds
+                        bus_code_and_stop_averages[(public_bus_code, from_bus_stop)].append(total_seconds)
+
+    # Calculate the average for each bus code and FromBusStop
+    result_data = {}
+    for (public_bus_code, from_bus_stop), delta_times in bus_code_and_stop_averages.items():
+        total_seconds = sum(delta_times)
+        average_duration = str(timedelta(seconds=total_seconds / len(delta_times)))
+        result_data[f"{public_bus_code} - {from_bus_stop}"] = [average_duration]
+
+    # Write the result to the SavedData file with ensure_ascii=False to correctly represent special characters
+    with open(SavedData, 'w') as f:
+        json.dump(result_data, f, indent=4, ensure_ascii=False)
+##################################################################################
+##################################################################################
+##################################################################################
+NormalDistWeek()
 
 '''
 ##################################################################################
@@ -332,4 +373,4 @@ while CurrentRun < times2run:
 ##################################################################################
 ##################################################################################
 ##################################################################################
-    '''
+'''
