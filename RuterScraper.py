@@ -153,13 +153,13 @@ def WriteData():
             "AimedDepartureTime": AimedDepartureTime, 
             "ExpectedDepartureTime": ExpectedDepartureTime, 
             "DeltaPredictedDepartureTime" : DeltaPredictedDepartureTime,
-            "ActualDepartureTime": ActualDepartureTime,
-            "DeltaActualDepartureTime": DeltaActualDepartureTime,
+            #"ActualDepartureTime": ActualDepartureTime,
+            #"DeltaActualDepartureTime": DeltaActualDepartureTime,
             "AimedArrivalTime" : AimedArrivalTime,
             "ExpectedArrivalTime": ExpectedArrivalTime,
             "DeltaPredictedArrivalTime": DeltaPredictedArrivalTime,
-            "ActualArrivalTime": ActualArrivalTime,
-            "DeltaActualArrivalTime" : DeltaActualArrivalTime,
+            #"ActualArrivalTime": ActualArrivalTime,
+            #"DeltaActualArrivalTime" : DeltaActualArrivalTime,
             "IsCancelled": IsCancelled,
             "TotalTravelTime":TotalTravelTime, 
             "Mode/Authority": Mode + " / " + Authority, 
@@ -310,7 +310,7 @@ def NormalDistHourRaw():
 ##################################################################################
 ##################################################################################
 ##################################################################################
-def LatestPublicBusCode():
+def SlowestPublicBusCode():
     RawData = "./SavedArea/raw"
     SavedData = "./SavedArea/latest/data.json"
 

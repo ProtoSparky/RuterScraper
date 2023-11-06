@@ -92,7 +92,7 @@ note time format is HH:MM:SS
 
 
 
-Average lateness on all weekdays. Sorted by day
+Average lateness on all weekdays. Sorted by day 
 File Loc = ./SavedArea/normalDist/week/data.json
 
 Example of file
