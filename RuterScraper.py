@@ -393,6 +393,61 @@ def process_data():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+
+def calculate_directory_size(directory):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            total_size += os.path.getsize(filepath)
+    return total_size
+
+def bytes_to_mb(size_in_bytes):
+    # Convert bytes to megabytes (MB)
+    return size_in_bytes / (1024 * 1024)
+
+def stats():
+    StatsData = "./stats/stats.json"
+    RawData = "./SavedArea/raw"
+
+    # Load the existing data from the JSON file
+    try:
+        with open(StatsData, 'r') as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        # If the file doesn't exist, initialize it with an empty dictionary
+        data = {}
+
+    # Update the "LastRun" field with the current date and time
+    data["LastRun"] = datetime.now().strftime("%d.%m.%Y @ %H:%M")
+
+    # Count the number of folders and total files in the RawData directory
+    total_files = 0
+    total_dirs = 0
+    for root, dirs, files in os.walk(RawData):
+        total_dirs += len(dirs)
+        total_files += len(files)
+
+    # Calculate the total size of the root directory in MB
+    total_project_size_bytes = calculate_directory_size(os.getcwd())
+    total_project_size_mb = bytes_to_mb(total_project_size_bytes)
+
+    # Update the JSON data with the folder and file counts and the total project size in MB
+    data["TotalFileAmount"] = total_files
+    data["TotalDirAmount"] = total_dirs
+    data["TotalProjectSize"] = f"{total_project_size_mb:.2f} MB"  # Format the size as "XX.XX MB"
+
+    # Write the updated data back to the JSON file
+    with open(StatsData, 'w') as file:
+        json.dump(data, file, indent=4)    
+
+##################################################################################
+##################################################################################
+##################################################################################
+
+
+
+
 #process_data()
 #SlowestPublicBusCode()
 #NormalDistHour()
@@ -415,6 +470,7 @@ while CurrentRun < times2run:
     NormalDistHour()
     NormalDistWeekRaw()
     NormalDistWeek()
+    stats()
     os.system('cls')
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
