@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON Data Display</title>
+</head>
+<body>
+    <p>Name: <span id="name"></span></p>
+    <p>Age: <span id="age"></span></p>
+    <p>Email: <span id="email"></span></p>
+    <p>Address: <span id="street"></span>, <span id="city"></span>, <span id="zipCode"></span></p>
+
+    <script>
+        var jsonData = {
+            "name": "John Doe",
+            "age": 30,
+            "email": "johndoe@example.com",
+            "address": {
+                "street": "123 Main St",
+                "city": "Sample City",
+                "zipCode": "12345"
+            }
+        };
+
+        var name = jsonData.name;
+        var age = jsonData.age;
+        var email = jsonData.email;
+        var address = jsonData.address;
+        var street = address.street;
+        var city = address.city;
+        var zipCode = address.zipCode;
+
+        document.getElementById("name").textContent = name;
+        document.getElementById("age").textContent = age;
+        document.getElementById("email").textContent = email;
+        document.getElementById("street").textContent = street;
+        document.getElementById("city").textContent = city;
+        document.getElementById("zipCode").textContent = zipCode;
+    </script>
+</body>
+</html>
