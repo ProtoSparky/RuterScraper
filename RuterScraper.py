@@ -133,15 +133,10 @@ def WriteData():
         AimedDepartureTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["aimedDepartureTime"]             #2023-10-30T17:50:00+01:00
         ExpectedDepartureTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["fromEstimatedCall"]["expectedDepartureTime"]       #2023-10-30T18:00:00+01:00
         DeltaPredictedDepartureTime = str(datetime.fromisoformat(ExpectedDepartureTime) - datetime.fromisoformat(AimedDepartureTime))       #Delta of Expected and Predicted times
-        ActualDepartureTime = -1                                                                                                            #2023-10-30T18:15:00+01:00 or -1 if undefined
-        DeltaActualDepartureTime = -1
         AimedArrivalTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["aimedDepartureTime"] 
         ExpectedArrivalTime = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["expectedDepartureTime"] 
-        DeltaPredictedArrivalTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(AimedArrivalTime))
-        ActualArrivalTime = -1 
-        DeltaActualArrivalTime = -1
+        #DeltaPredictedArrivalTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(AimedArrivalTime))
         IsCancelled = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["toEstimatedCall"]["cancellation"]                            #Returns true if route was cancelled
-
         Mode = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["mode"]                                                              #metro, bus etc
         Authority = savedData["data"]["trip"]["tripPatterns"][0]["legs"][1]["line"]["authority"]["name"]
         TotalTravelTime = str(datetime.fromisoformat(ExpectedArrivalTime) - datetime.fromisoformat(ExpectedDepartureTime))
@@ -153,24 +148,20 @@ def WriteData():
             "AimedDepartureTime": AimedDepartureTime, 
             "ExpectedDepartureTime": ExpectedDepartureTime, 
             "DeltaPredictedDepartureTime" : DeltaPredictedDepartureTime,
-            #"ActualDepartureTime": ActualDepartureTime,
-            #"DeltaActualDepartureTime": DeltaActualDepartureTime,
             "AimedArrivalTime" : AimedArrivalTime,
             "ExpectedArrivalTime": ExpectedArrivalTime,
-            "DeltaPredictedArrivalTime": DeltaPredictedArrivalTime,
-            #"ActualArrivalTime": ActualArrivalTime,
-            #"DeltaActualArrivalTime" : DeltaActualArrivalTime,
             "IsCancelled": IsCancelled,
             "TotalTravelTime":TotalTravelTime, 
-            "Mode/Authority": Mode + " / " + Authority, 
-            "Debug":CurrentBus[0] + " " +  CurrentBus[1]
+            "Mode/Authority": Mode + " / " + Authority,
+            "OriginalBusCode":CurrentBus[0], #This is the bus that's supposed to service the line
+            "OriginalStop":CurrentBus[1]   #This is the originl bus line that's supposed to be serviced
         }
         DataExports.append(DataExport)
         os.system('cls')
         print("Checking " + str(CurrentKey) + "/ " + str(Arr_len -1) + " | " + FromBusStop)
         CurrentKey += 1
     filepath  = "./SavedArea/raw/" + shortDayName + "-"+ str(currentDay)
-    filenames =  "/" + shortDayName + "-" + currentTime + ".json"
+    filenames =  "/" + shortDayName + "-" + time.strftime("%H-%M-%S") + ".json"
     if not os.path.exists(filepath):
         os.makedirs(filepath)
 
@@ -223,8 +214,7 @@ def NormalDistWeekRaw():
     if "FileLocation" in data:
         data.pop("FileLocation")
     with open(data_json_file, "w") as json_file:
-        json.dump(data, json_file, indent=4)   
-
+        json.dump(data, json_file, indent=4) 
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -265,7 +255,7 @@ def NormalDistWeek():
 ##################################################################################
 ##################################################################################
 #convert all data to normal dist for all hours 0-24
-def NormalDistHourRaw():
+def NormalDistHour():
     RawData = "./SavedArea/raw"
     SavedData = "./SavedArea/normalDist/day/data.json"
     hour_averages = {}
@@ -310,10 +300,10 @@ def NormalDistHourRaw():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+#Creates a list of the average delays for all the busses
 def SlowestPublicBusCode():
     RawData = "./SavedArea/raw"
     SavedData = "./SavedArea/latest/data.json"
-
     # Initialize a dictionary to store the average DeltaPredictedDepartureTime for each PublicBusCode and FromBusStop
     bus_code_and_stop_averages = defaultdict(list)
 
@@ -328,8 +318,8 @@ def SlowestPublicBusCode():
                     data = json.load(f)
 
                 for entry in data:
-                    public_bus_code = entry["PublicBusCode"]
-                    from_bus_stop = entry["FromBusStop"]
+                    public_bus_code = entry["OriginalBusCode"]
+                    from_bus_stop = entry["OriginalStop"]
                     delta_time_str = entry["DeltaPredictedDepartureTime"]
 
                     # Calculate the average DeltaPredictedDepartureTime for the bus code and FromBusStop
@@ -352,9 +342,64 @@ def SlowestPublicBusCode():
 ##################################################################################
 ##################################################################################
 ##################################################################################
-NormalDistWeek()
+#This trims down all the files generated in raw to one json file for the csv conversion
+def process_data():
+    RawData = "./SavedArea/raw"
+    SavedData = "./SavedArea/t_test/data.json"
+    result_data = {}
+    for root, dirs, files in os.walk(RawData):
+        for file in files:
+            if file.endswith(".json"):
+                file_parts = file.split("-")
+                hour_str = file_parts[1]
+                minute_str = file_parts[2]
+                second_str = file_parts[3][:-5]
+                dir_parts = root.split("\\")
+                date_str = dir_parts[-1]
 
-'''
+                date = datetime.strptime(date_str, "%a-%Y-%m-%d")
+                time = datetime.strptime(f"{hour_str}:{minute_str}:{second_str}", "%H:%M:%S")
+                with open(os.path.join(root, file), "r", encoding='utf-8') as json_file:
+                    data = json.load(json_file)
+
+                for entry in data:
+                    bus_code = entry["OriginalBusCode"]
+                    from_bus_stop = entry["OriginalStop"]
+                    aimed_departure_time = entry["AimedDepartureTime"]
+                    expected_departure_time = entry["ExpectedDepartureTime"]
+                    Delta_departure_time = entry["DeltaPredictedDepartureTime"]
+
+                    date_key = date.strftime("%d.%m.%Y")
+                    time_key = time.strftime("%H:%M:%S")
+                    bus_stop_key = f"{bus_code} {from_bus_stop}"
+
+                    if date_key not in result_data:
+                        result_data[date_key] = {}
+
+                    if time_key not in result_data[date_key]:
+                        result_data[date_key][time_key] = {}
+
+                    result_data[date_key][time_key][bus_stop_key] = {
+                        "AimedDepartureTime": aimed_departure_time,
+                        "ExpectedDepartureTime": expected_departure_time,
+                        "DeltaPredictedDepartureTime": Delta_departure_time
+                    }
+
+    # Step 3: Save the resulting data in a JSON file with UTF-8 encoding
+    with open(SavedData, "w", encoding='utf-8') as output_file:
+        json.dump(result_data, output_file, ensure_ascii=False, indent=4)
+
+    print("Data saved to", SavedData)
+##################################################################################
+##################################################################################
+##################################################################################
+#process_data()
+#SlowestPublicBusCode()
+#NormalDistHour()
+#NormalDistWeekRaw()
+#NormalDistWeek()
+
+
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -365,6 +410,11 @@ CurrentRun = 0
 while CurrentRun < times2run:
     os.system('cls')
     WriteData()
+    process_data()
+    SlowestPublicBusCode()
+    NormalDistHour()
+    NormalDistWeekRaw()
+    NormalDistWeek()
     os.system('cls')
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
@@ -373,4 +423,5 @@ while CurrentRun < times2run:
 ##################################################################################
 ##################################################################################
 ##################################################################################
-'''
+
+
