@@ -17,10 +17,9 @@ function displayData(data) {
   }
   
   // Fetch and display JSON data
-  fetch('./testdata/data2.json') // Updated the file path to data2.json
+  fetch('./testdata/data3.json') // Updated the file path to data2.json
     .then((response) => response.json())
     .then((data) => {
       displayData(data);
     })
     .catch((error) => console.error('Error loading JSON data: ', error));
-  
