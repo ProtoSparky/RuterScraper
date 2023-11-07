@@ -369,9 +369,13 @@ def process_data():
                 minute_str = file_parts[2]
                 second_str = file_parts[3][:-5]
                 dir_parts = root.split("\\")
-                date_str = (dir_parts[-1])[4:]
-
+                #date_str = (dir_parts[-1])[4:]
+                if platform.system() == 'Windows':
+                    date_str = (dir_parts[-1])[4:]
+                else:
+                    date_str = (dir_parts[-1])[20:]
                 date = datetime.strptime(date_str, "%Y-%m-%d")
+                
                 time = datetime.strptime(f"{hour_str}:{minute_str}:{second_str}", "%H:%M:%S")
                 with open(os.path.join(root, file), "r", encoding='utf-8') as json_file:
                     data = json.load(json_file)
@@ -404,6 +408,7 @@ def process_data():
         json.dump(result_data, output_file, ensure_ascii=False, indent=4)
 
     print("Data saved to", SavedData)
+
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -513,12 +518,6 @@ def stats():
 ##################################################################################
 ##################################################################################
 ##################################################################################
-
-#process_data()
-#SlowestPublicBusCode()
-#NormalDistHour()
-#NormalDistWeekRaw()
-#NormalDistWeek()
 
 
 ##################################################################################
