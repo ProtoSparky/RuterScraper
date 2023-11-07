@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import platform
 import csv
 import unicodedata
+from collections import OrderedDict
 
 
 dateNow = datetime.now()
@@ -188,47 +189,48 @@ def WriteData():
 ##################################################################################
 #Converts data chunks to readable json
 def NormalDistWeekRaw():
+    # Define directories
     raw_directory = "./SavedArea/raw"
-    data_directory = "./SavedArea/normalDist/WeekRaw/"
-    file_index_file = os.path.join(data_directory, "FileIndex.json")
-    data_json_file = os.path.join(data_directory, "data.json")
+    data_directory = "./SavedArea/normalDist/WeekRaw/data.json"
+
+    # Initialize a dictionary to store the data
     data = {}
 
-    if os.path.exists(file_index_file):
-        with open(file_index_file, "r") as index_file:
-            data = json.load(index_file)
-    
-    # Get all json files in RAW
-    for root, _, files in os.walk(raw_directory):
-        for file in files:
-            if file.endswith(".json"):
-                file_path = os.path.join(root, file)
-                
-                # Check if data was written before this
-                if file_path in data.get("FileLocation", []):
-                    continue
-                
-                day_name = os.path.basename(root)
-                
-                # Read json data form raw dir data
-                with open(file_path, "r") as json_file:
-                    json_data = json.load(json_file)
-                    for bus_info in json_data:
-                        delta_departure_time = bus_info.get("DeltaPredictedDepartureTime")
-                        if delta_departure_time is not None:
-                            data.setdefault(day_name, []).append(delta_departure_time)
-                
-                data.setdefault("FileLocation", []).append(file_path)
-    
-    # Keep track of data written 
-    with open(file_index_file, "w") as index_file:
-        json.dump(data, index_file, indent=4)
+    # List all directories in the raw_directory
+    for dir_name in os.listdir(raw_directory):
+        dir_path = os.path.join(raw_directory, dir_name)
         
-    # Save new data
-    if "FileLocation" in data:
-        data.pop("FileLocation")
-    with open(data_json_file, "w") as json_file:
-        json.dump(data, json_file, indent=4) 
+        # Check if it's a directory
+        if os.path.isdir(dir_path):
+            delta_times = []
+            
+            # List all JSON files in the directory
+            for file_name in os.listdir(dir_path):
+                if file_name.endswith(".json"):
+                    file_path = os.path.join(dir_path, file_name)
+                    
+                    with open(file_path, 'r') as file:
+                        content = json.load(file)
+                        for entry in content:
+                            delta_times.append(entry.get("DeltaPredictedDepartureTime", "0:00:00"))
+            
+            # Calculate the average delta time for this directory
+            if delta_times:
+                total_seconds = sum(
+                    int(x.split(':')[0]) * 3600 + int(x.split(':')[1]) * 60 + int(x.split(':')[2]) for x in delta_times
+                )
+                average_seconds = total_seconds // len(delta_times)
+                hours, remainder = divmod(average_seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                average_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+                data[dir_name] = delta_times
+                data[dir_name].insert(0, average_time)
+
+    # Save the data dictionary to data_directory
+    with open(data_directory, 'w') as data_file:
+        json.dump(data, data_file, indent=4)
+
+    print("Data processing and saving completed.")
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -306,8 +308,7 @@ def NormalDistHour():
         average_duration = total_duration / len(average_duration_list)
         hour_averages[hour] = str(average_duration)
 
-    # create file structure
-    result_data = {str(hour).zfill(2): average for hour, average in hour_averages.items()}
+    result_data = {str(hour).zfill(2): average for hour, average in sorted(hour_averages.items())} #Bugfix 
     # Write to SavedData file
     with open(SavedData, 'w') as f:
         json.dump(result_data, f, indent=4)
@@ -360,7 +361,9 @@ def SlowestPublicBusCode():
 def process_data():
     RawData = "./SavedArea/raw"
     SavedData = "./SavedArea/t_test/data.json"
-    result_data = {}
+    
+    result_data = OrderedDict()
+    
     for root, dirs, files in os.walk(RawData):
         for file in files:
             if file.endswith(".json"):
@@ -369,14 +372,11 @@ def process_data():
                 minute_str = file_parts[2]
                 second_str = file_parts[3][:-5]
                 dir_parts = root.split("\\")
-                #date_str = (dir_parts[-1])[4:]
-                if platform.system() == 'Windows':
-                    date_str = (dir_parts[-1])[4:]
-                else:
-                    date_str = (dir_parts[-1])[20:]
-                date = datetime.strptime(date_str, "%Y-%m-%d")
+                date_str = (dir_parts[-1])[4:] if platform.system() == 'Windows' else (dir_parts[-1])[20:]
                 
+                date = datetime.strptime(date_str, "%Y-%m-%d")
                 time = datetime.strptime(f"{hour_str}:{minute_str}:{second_str}", "%H:%M:%S")
+                
                 with open(os.path.join(root, file), "r", encoding='utf-8') as json_file:
                     data = json.load(json_file)
 
@@ -392,10 +392,10 @@ def process_data():
                     bus_stop_key = f"{bus_code} {from_bus_stop}"
 
                     if date_key not in result_data:
-                        result_data[date_key] = {}
+                        result_data[date_key] = OrderedDict()
 
                     if time_key not in result_data[date_key]:
-                        result_data[date_key][time_key] = {}
+                        result_data[date_key][time_key] = OrderedDict()
 
                     result_data[date_key][time_key][bus_stop_key] = {
                         "AimedDepartureTime": aimed_departure_time,
@@ -403,9 +403,17 @@ def process_data():
                         "DeltaPredictedDepartureTime": Delta_departure_time
                     }
 
-    # Step 3: Save the resulting data in a JSON file with UTF-8 encoding
+    # Sort the result_data dictionary by date and time
+    sorted_result_data = OrderedDict(sorted(result_data.items()))
+
+    for date_key, date_value in sorted_result_data.items():
+        sorted_result_data[date_key] = OrderedDict(sorted(date_value.items()))
+        for time_key, time_value in sorted_result_data[date_key].items():
+            sorted_result_data[date_key][time_key] = OrderedDict(sorted(time_value.items()))
+
+    # Save the sorted data to a JSON file
     with open(SavedData, "w", encoding='utf-8') as output_file:
-        json.dump(result_data, output_file, ensure_ascii=False, indent=4)
+        json.dump(sorted_result_data, output_file, ensure_ascii=False, indent=4)
 
     print("Data saved to", SavedData)
 
@@ -476,12 +484,12 @@ def calculate_directory_size(directory):
             filepath = os.path.join(dirpath, filename)
             total_size += os.path.getsize(filepath)
     return total_size
-
 def bytes_to_mb(size_in_bytes):
     # Convert bytes to megabytes (MB)
     return size_in_bytes / (1024 * 1024)
 
-def stats():
+def stats(TimeBeforeRun):
+    TimeDuringRun = datetime.now()
     StatsData = "./stats/stats.json"
     RawData = "./SavedArea/raw"
 
@@ -492,11 +500,16 @@ def stats():
     except FileNotFoundError:
         # If the file doesn't exist, initialize it with an empty dictionary
         data = {}
+    current_time = datetime.now()
+    one_hour_later = current_time + timedelta(hours=1)
+    formatted_time = one_hour_later.strftime("%d.%m.%Y @ %H:%M")
+    data["LastRun"] = formatted_time
 
-    # Update the "LastRun" field with the current date and time
-    data["LastRun"] = datetime.now().strftime("%d.%m.%Y @ %H:%M")
-
-    # Count the number of folders and total files in the RawData directory
+    time_difference = TimeDuringRun - TimeBeforeRun
+    seconds = time_difference.total_seconds()
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    TotalRunTime = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
     total_files = 0
     total_dirs = 0
     for root, dirs, files in os.walk(RawData):
@@ -511,15 +524,11 @@ def stats():
     data["TotalFileAmount"] = total_files
     data["TotalDirAmount"] = total_dirs
     data["TotalProjectSize"] = f"{total_project_size_mb:.2f} MB"  # Format the size as "XX.XX MB"
+    data["ProcessingTime"] = TotalRunTime
 
     # Write the updated data back to the JSON file
     with open(StatsData, 'w') as file:
         json.dump(data, file, indent=4)
-##################################################################################
-##################################################################################
-##################################################################################
-
-
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -528,6 +537,7 @@ days2run = 30
 times2run = (((days2run * 60) * 24) * days2run)
 CurrentRun = 0
 while CurrentRun < times2run:
+    TimeBeforeRun = datetime.now()
     clear_screen()
     WriteData()
     process_data()
@@ -536,7 +546,7 @@ while CurrentRun < times2run:
     NormalDistWeekRaw()
     NormalDistWeek()
     process_data2csv()
-    stats()
+    stats(TimeBeforeRun)
     clear_screen()
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
