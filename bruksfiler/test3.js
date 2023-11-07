@@ -4,8 +4,8 @@ function displayData(data) {
     let tableContent = `
         <table style="margin: 0 auto; font-family: 'Segoe UI', sans-serif;">
             <tr>
-                <th>Bus Route</th>
-                <th>Time</th>
+                <th font-size: 24px;>Bus Route</th>
+                <th font-size: 24px;>Time</th>
             </tr>
     `;
 
@@ -13,8 +13,8 @@ function displayData(data) {
         const time = data[key][0];
         tableContent += `
             <tr>
-                <td>${key}</td>
-                <td>${time}</td>
+                <td font-size: 24px;>${key}</td>
+                <td font-size: 24px;>${time}</td>
             </tr>
         `;
     }

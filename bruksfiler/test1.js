@@ -13,7 +13,7 @@ function calculateAverage(data) {
       const displayElement = document.getElementById('data-display');
       displayElement.innerHTML = `
           <div style="text-align: center;">
-              <h2 style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Gjennomsnitt hele datasettet alle busser</h2>
+              <h2 style="font-size: 40px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Gjennomsnitt hele datasettet alle busser</h2>
               <p style="font-size: 24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">${averageTime}</p>
           </div>`;
   } else {
