@@ -38,7 +38,7 @@ Bus = [
 
 URL = "https://api.entur.io/journey-planner/v3/graphql"
 HEAD = {
-    "ET-Client-Name": "Kuben Videregående Skole - 3STT ruter forsøk",
+    "ET-Client-Name": "Kuben Videregående Skole - 3STT ruter forsøk | kakra038@osloskolen.no",
     "Content-Type": "application/json"
 }
 
