@@ -7,6 +7,9 @@ from datetime import date
 from datetime import datetime
 from collections import defaultdict
 from datetime import datetime, timedelta
+import platform
+import csv
+import unicodedata
 
 
 dateNow = datetime.now()
@@ -38,6 +41,16 @@ HEAD = {
     "Content-Type": "application/json"
 }
 
+
+
+##################################################################################
+##################################################################################
+##################################################################################
+def clear_screen():
+    if platform.system() == 'Windows':
+        os.system('cls')
+    else:
+        os.system('clear')
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -158,7 +171,7 @@ def WriteData():
             "OriginalStop":CurrentBus[1]   #This is the originl bus line that's supposed to be serviced
         }
         DataExports.append(DataExport)
-        os.system('cls')
+        clear_screen()
         print("Checking " + str(CurrentKey) + "/ " + str(Arr_len -1) + " | " + FromBusStop)
         CurrentKey += 1
     filepath  = "./SavedArea/raw/" + shortDayName + "-"+ str(currentDay)
@@ -396,11 +409,6 @@ def process_data():
 ##################################################################################
 
 def process_data2csv():
-    import json
-    import csv
-    import os
-    import unicodedata
-
     JsonFilePath = "./SavedArea/t_test/data.json"
     ExcelOutputPath = "./SavedArea/t_test/"
     HEADER = ["Dayname", "HourName", "AimedDepartureTime", "ExpectedDepartureTime", "DeltaPredictedDepartureTime"]
@@ -521,7 +529,7 @@ days2run = 1
 times2run = (((days2run * 60) * 24) * days2run)
 CurrentRun = 0
 while CurrentRun < times2run:
-    os.system('cls')
+    clear_screen()
     WriteData()
     process_data()
     SlowestPublicBusCode()
@@ -530,7 +538,7 @@ while CurrentRun < times2run:
     NormalDistWeek()
     process_data2csv()
     stats()
-    os.system('cls')
+    clear_screen()
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
     time.sleep(60)  
