@@ -369,9 +369,9 @@ def process_data():
                 minute_str = file_parts[2]
                 second_str = file_parts[3][:-5]
                 dir_parts = root.split("\\")
-                date_str = dir_parts[-1]
+                date_str = (dir_parts[-1])[4:]
 
-                date = datetime.strptime(date_str, "%a-%Y-%m-%d")
+                date = datetime.strptime(date_str, "%Y-%m-%d")
                 time = datetime.strptime(f"{hour_str}:{minute_str}:{second_str}", "%H:%M:%S")
                 with open(os.path.join(root, file), "r", encoding='utf-8') as json_file:
                     data = json.load(json_file)
