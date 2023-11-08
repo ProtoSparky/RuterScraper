@@ -19,6 +19,7 @@ currentTime = time.strftime("%H-%M-%S")
 currentDayName = dateNow.strftime('%A')
 shortDayName = currentDayName[0:3]
 WeekArray = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+DataFails = 0
 WeekArrayLength = len(WeekArray)
 Bus = [
     #Platform A
@@ -525,6 +526,7 @@ def stats(TimeBeforeRun):
     data["TotalDirAmount"] = total_dirs
     data["TotalProjectSize"] = f"{total_project_size_mb:.2f} MB"  # Format the size as "XX.XX MB"
     data["ProcessingTime"] = TotalRunTime
+    data["FailedComponents"] = DataFails
 
     # Write the updated data back to the JSON file
     with open(StatsData, 'w') as file:
@@ -539,13 +541,56 @@ CurrentRun = 0
 while CurrentRun < times2run:
     TimeBeforeRun = datetime.now()
     clear_screen()
-    WriteData()
-    process_data()
-    SlowestPublicBusCode()
-    NormalDistHour()
-    NormalDistWeekRaw()
-    NormalDistWeek()
-    process_data2csv()
+    try: 
+        WriteData()        
+    except: 
+        DataFails =+ 1
+        print("WriteData failed! Good luck")
+        time.sleep(3) 
+    ################################################
+    try: 
+        process_data()        
+    except: 
+        DataFails =+ 1
+        print("Process_Data() failed! Good luck")
+        time.sleep(3)
+    ################################################ 
+    try: 
+        SlowestPublicBusCode()
+    except: 
+        DataFails =+ 1    
+        print("SlowestPublicBusCode failed! Good luck")
+        time.sleep(3) 
+    ################################################
+    try: 
+        NormalDistHour()
+    except: 
+        DataFails =+ 1
+        print("NormalDistHour failed! Good luck")
+        time.sleep(3) 
+    ################################################
+    try: 
+        NormalDistWeekRaw()
+    except: 
+        DataFails =+ 1
+        print("NormalDistWeekRaw failed! Good luck")
+        time.sleep(3) 
+    ################################################
+    try: 
+        NormalDistWeek()
+    except: 
+        DataFails =+ 1
+        print("NormalDistWeek failed! Good luck")
+        time.sleep(3) 
+    ################################################
+    try: 
+        process_data2csv()
+    except: 
+        DataFails =+ 1
+        print("Process_data2csv failed! Good luck")
+        time.sleep(3) 
+    ################################################
+    
     stats(TimeBeforeRun)
     clear_screen()
     print("sleep for 60s")
