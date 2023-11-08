@@ -1,4 +1,5 @@
 #This is a merged version containing json2csv.  If things go wrong here, they go really wrong!
+#If you think something in code is hacky, remember that humanity has somehow convinced a rock to think using lightning
 import json 
 import requests
 import os
@@ -12,12 +13,6 @@ import csv
 import unicodedata
 from collections import OrderedDict
 
-
-dateNow = datetime.now()
-currentDay = date.today()
-currentTime = time.strftime("%H-%M-%S")
-currentDayName = dateNow.strftime('%A')
-shortDayName = currentDayName[0:3]
 WeekArray = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 DataFails = 0
 WeekArrayLength = len(WeekArray)
@@ -34,7 +29,6 @@ Bus = [
     ["24",     "Radiumhospitalet",  "Økern T", "59.928834249492155",   "10.659799721473952",   "59.928373823342426"    , "10.806618014503611"],
 
 ]
-
 
 
 URL = "https://api.entur.io/journey-planner/v3/graphql"
@@ -176,6 +170,11 @@ def WriteData():
         clear_screen()
         print("Checking " + str(CurrentKey) + "/ " + str(Arr_len -1) + " | " + FromBusStop)
         CurrentKey += 1
+    dateNow = datetime.now()
+    currentDay = date.today()
+    currentTime = time.strftime("%H-%M-%S")
+    currentDayName = dateNow.strftime('%A')
+    shortDayName = currentDayName[0:3]
     filepath  = "./SavedArea/raw/" + shortDayName + "-"+ str(currentDay)
     filenames =  "/" + shortDayName + "-" + time.strftime("%H-%M-%S") + ".json"
     if not os.path.exists(filepath):
