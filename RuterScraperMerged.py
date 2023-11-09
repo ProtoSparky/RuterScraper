@@ -12,6 +12,7 @@ import platform
 import csv
 import unicodedata
 from collections import OrderedDict
+from statistics import median
 
 WeekArray = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 DataFails = 0
@@ -234,6 +235,8 @@ def NormalDistWeekRaw():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+'''
+##This is the old code. If bad shit happens, use this
 # converts readable json to average lateness for each day in week
 def NormalDistWeek(): 
     rawDistDir = "./SavedArea/normalDist/WeekRaw/data.json"
@@ -267,10 +270,72 @@ def NormalDistWeek():
     
     with open(processedDistDir, 'w') as processed_file:
         json.dump(weekday_averages, processed_file, indent=4)
+'''
+def NormalDistWeek(): 
+    rawDistDir = "./SavedArea/normalDist/WeekRaw/data.json"
+    processedDistDir = "./SavedArea/normalDist/week/data.json"    
+    target_weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    # Read from rawDistDir
+    with open(rawDistDir, 'r') as raw_file:
+        raw_data = json.load(raw_file)
+    
+    # Create average, median, and max for weekdays
+    weekday_averages = {weekday: timedelta(seconds=0) for weekday in target_weekdays}
+    weekday_medians = {weekday: [] for weekday in target_weekdays}
+    weekday_maxs = {weekday: timedelta(seconds=0) for weekday in target_weekdays}
+    count = defaultdict(int)  # count amount of weekdays
+    
+    # go through that, and create average, median, and max
+    for date, times in raw_data.items():
+        weekday = date.split('-')[0]
+        if weekday in target_weekdays:
+            for time in times:
+                # Parse as hours:minutes:seconds
+                hours, minutes, seconds = map(int, time.split(':'))
+                time_delta = timedelta(hours=hours, minutes=minutes, seconds=seconds)
+                weekday_averages[weekday] += time_delta
+                weekday_medians[weekday].append(time_delta.total_seconds())
+                weekday_maxs[weekday] = max(weekday_maxs[weekday], time_delta)
+                count[weekday] += 1
+    
+    result_data = {}
+    
+    for weekday in target_weekdays:
+        if count[weekday] > 0:
+            # Calculate median
+            #median_seconds = sorted(weekday_medians[weekday])[len(weekday_medians[weekday]) // 2]
+            sorted_medians = sorted(weekday_medians[weekday])
+            median_seconds = sorted_medians[len(sorted_medians) // 2]
+            median_time = str(timedelta(seconds=median_seconds))
+            
+            result_data[weekday] = {
+                "AvgTime": str(weekday_averages[weekday] / count[weekday]),
+                "AvgTimeSeconds": weekday_averages[weekday].total_seconds() / count[weekday],
+                "MedianTime": median_time,
+                "MedianTimeSeconds": median_seconds,
+                "MaxTime": str(weekday_maxs[weekday]),
+                "MaxTimeSeconds": weekday_maxs[weekday].total_seconds()
+            }
+        else:
+            # If no data, set all values to 0
+            result_data[weekday] = {
+                "AvgTime": "0:00:00",
+                "AvgTimeSeconds": 0,
+                "MedianTime": "0:00:00",
+                "MedianTimeSeconds": 0,
+                "MaxTime": "0:00:00",
+                "MaxTimeSeconds": 0
+            }
+    
+    with open(processedDistDir, 'w') as processed_file:
+        json.dump(result_data, processed_file, indent=4)
 ##################################################################################
 ##################################################################################
 ##################################################################################
 #convert all data to normal dist for all hours 0-24
+'''
+##This is the old code. If bad shit happens, use this
 def NormalDistHour():
     RawData = "./SavedArea/raw"
     SavedData = "./SavedArea/normalDist/day/data.json"
@@ -312,10 +377,59 @@ def NormalDistHour():
     # Write to SavedData file
     with open(SavedData, 'w') as f:
         json.dump(result_data, f, indent=4)
+'''
+def NormalDistHour():
+    RawData = "./SavedArea/raw"
+    SavedData = "./SavedArea/normalDist/day/data.json"
+    hour_data = {}
+
+    # Loop through RAW
+    for root, _, files in os.walk(RawData):
+        for file in files:
+            if file.endswith(".json"):
+                file_path = os.path.join(root, file)
+                # Get hour from fileName
+                hour = file.split("-")[1]
+                hour = int(hour)
+                # Load data json
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+                # Create list to store DeltaPredictedDepartureTime values
+                delta_times = []
+                for entry in data:
+                    delta_time_str = entry["DeltaPredictedDepartureTime"]
+                    parts = delta_time_str.split(":")
+                    if len(parts) == 3:
+                        hours, minutes, seconds = map(int, parts)
+                        total_seconds = hours * 3600 + minutes * 60 + seconds
+                        delta_times.append(total_seconds)
+                
+                # Calculate average time in seconds
+                avg_time_seconds = sum(delta_times) / len(delta_times)
+                # Calculate maximum time in seconds
+                max_time_seconds = max(delta_times)
+                # Calculate median time in seconds
+                median_time_seconds = median(delta_times)
+                
+                # Add data to hour_data dictionary
+                hour_data[hour] = {
+                    "AvgTime": str(timedelta(seconds=avg_time_seconds)),
+                    "AvgTimeSeconds": avg_time_seconds,
+                    "MaxTime": str(timedelta(seconds=max_time_seconds)),
+                    "MaxTimeSeconds": max_time_seconds,
+                    "MedianTime": str(timedelta(seconds=median_time_seconds)),
+                    "MedianTimeSeconds": median_time_seconds
+                }
+
+    # Write to SavedData file
+    with open(SavedData, 'w') as f:
+        json.dump(hour_data, f, indent=4)
 ##################################################################################
 ##################################################################################
 ##################################################################################
 #Creates a list of the average delays for all the busses
+'''
+##This is the old code. If bad shit happens, use this
 def SlowestPublicBusCode():
     RawData = "./SavedArea/raw"
     SavedData = "./SavedArea/latest/data.json"
@@ -354,6 +468,56 @@ def SlowestPublicBusCode():
     # Write the result to the SavedData file with ensure_ascii=False to correctly represent special characters
     with open(SavedData, 'w') as f:
         json.dump(result_data, f, indent=4, ensure_ascii=False)
+'''
+def SlowestPublicBusCode():
+    RawData = "./SavedArea/raw"
+    SavedData = "./SavedArea/latest/data.json"
+    # Initialize a dictionary to store the average, median, and max DeltaPredictedDepartureTime for each PublicBusCode and FromBusStop
+    bus_code_and_stop_data = defaultdict(list)
+
+    # Traverse the directories in RawData
+    for root, _, files in os.walk(RawData):
+        for file in files:
+            if file.endswith(".json"):
+                file_path = os.path.join(root, file)
+
+                # Load the JSON data from the file
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+
+                for entry in data:
+                    public_bus_code = entry["OriginalBusCode"]
+                    from_bus_stop = entry["OriginalStop"]
+                    delta_time_str = entry["DeltaPredictedDepartureTime"]
+
+                    # Calculate the DeltaPredictedDepartureTime for the bus code and FromBusStop
+                    parts = delta_time_str.split(":")
+                    if len(parts) == 3:
+                        hours, minutes, seconds = map(int, parts)
+                        total_seconds = hours * 3600 + minutes * 60 + seconds
+                        bus_code_and_stop_data[(public_bus_code, from_bus_stop)].append(total_seconds)
+
+    # Calculate the average, median, and max for each bus code and FromBusStop
+    result_data = {}
+    for (public_bus_code, from_bus_stop), delta_times in bus_code_and_stop_data.items():
+        total_seconds_avg = sum(delta_times) / len(delta_times)
+        average_duration = str(timedelta(seconds=total_seconds_avg))
+        median_duration = str(timedelta(seconds=sorted(delta_times)[len(delta_times) // 2]))
+        max_duration = str(timedelta(seconds=max(delta_times)))
+
+        result_data[f"{public_bus_code} - {from_bus_stop}"] = {
+            "AvgTime": average_duration,
+            "MedianTime": median_duration,
+            "MaxTime": max_duration,
+            "AvgTimeSeconds": total_seconds_avg,
+            "MedianTimeSeconds": sorted(delta_times)[len(delta_times) // 2],
+            "MaxTimeSeconds": max(delta_times)
+        }
+
+    # Write the result to the SavedData file with ensure_ascii=False to correctly represent special characters
+    with open(SavedData, 'w') as f:
+        json.dump(result_data, f, indent=4, ensure_ascii=False)
+
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -426,21 +590,14 @@ def process_data2csv():
     ExcelOutputPath = "./SavedArea/t_test/"
     HEADER = ["Dayname", "HourName", "AimedDepartureTime", "ExpectedDepartureTime", "DeltaPredictedDepartureTime"]
 
-    # Opening JSON file
-    with open(JsonFilePath) as f:
-        data = json.load(f)
+    CSVARR = ["23 Brynseng T.csv", "23 Lysakerlokket.csv", "23 SimensbrAten.csv", "24 Radiumhospitalet.csv", "60 Tonsenhagen.csv", "60 Vippetangen.csv"]
+    for CurrentCSV in CSVARR:
+        try:
+            os.remove(ExcelOutputPath + CurrentCSV)
+            print("file removed")
+        except:
+          print("file not found")
 
-    for Dayname in data:
-        for HourName in data[Dayname]:
-            for BusLine in data[Dayname][HourName]:
-                # Extract bus line name
-                bus_line_name = BusLine
-                normalized_bus_line_name = unicodedata.normalize('NFKD', bus_line_name).encode('ASCII', 'ignore').decode('utf-8')
-                try:
-                    print("file removed")
-                    os.remove(ExcelOutputPath + normalized_bus_line_name + ".csv")
-                except:
-                    print("file not found")
 
     # Opening JSON file
     with open(JsonFilePath) as f:
@@ -540,12 +697,14 @@ CurrentRun = 0
 while CurrentRun < times2run:
     TimeBeforeRun = datetime.now()
     clear_screen()
+    '''
     try: 
         WriteData()        
     except: 
         DataFails =+ 1
         print("WriteData failed! Good luck")
         time.sleep(3) 
+    '''
     ################################################
     try: 
         process_data()        
