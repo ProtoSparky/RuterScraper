@@ -803,14 +803,13 @@ CurrentRun = 0
 while CurrentRun < times2run:
     TimeBeforeRun = datetime.now()
     clear_screen()
-    '''
+    
     try: 
         WriteData()        
     except: 
         DataFails =+ 1
         print("WriteData failed! Good luck")
         time.sleep(3)    
-    '''
     ################################################
     try: 
         process_data()        
