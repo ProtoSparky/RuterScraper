@@ -13,6 +13,7 @@ import csv
 import unicodedata
 from collections import OrderedDict
 from statistics import median
+from statistics import mean, median
 
 WeekArray = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 DataFails = 0
@@ -741,6 +742,61 @@ def stats(TimeBeforeRun):
 ##################################################################################
 ##################################################################################
 ##################################################################################
+##Reads from raw, and generates hourly data for each weekday
+def parse_time(time_str):
+    h, m, s = map(int, time_str.split(':'))
+    return timedelta(hours=h, minutes=m, seconds=s)
+
+def DayPerWeek():
+    results = {"Mon": {}, "Tue": {}, "Wed": {}, "Thu": {}, "Fri": {}, "Sat": {}, "Sun": {}}
+    
+    def process_directory(directory):
+        nonlocal results
+        day_abbrev = directory.split(os.path.sep)[-1].split('-')[0]
+        day_data = results.get(day_abbrev, {})
+
+        for filename in os.listdir(directory):
+            if filename.endswith(".json"):
+                file_path = os.path.join(directory, filename)
+                with open(file_path, 'r') as file:
+                    data = json.load(file)
+                    
+                    delta_times = [time.total_seconds() for time in [parse_time(bus["DeltaPredictedDepartureTime"]) for bus in data]]
+                    avg_delta_time = str(timedelta(seconds=mean(delta_times)))
+
+                    hour = int(filename.split('-')[1])
+
+                    hour_data = day_data.get(str(hour), {"AvgTime": "0:00:00", "MedianTime": "0:00:00", "MaxTime": "0:00:00"})
+                    hour_data["AvgTime"] = avg_delta_time
+                    hour_data["AvgTimeSeconds"] = int(mean(delta_times))
+                    hour_data["MedianTime"] = str(timedelta(seconds=median(delta_times)))
+                    hour_data["MedianTimeSeconds"] = int(median(delta_times))
+                    hour_data["MaxTime"] = str(timedelta(seconds=max(delta_times, default=0)))
+                    hour_data["MaxTimeSeconds"] = int(max(delta_times, default=0))
+                    day_data[str(hour)] = hour_data
+
+        if day_data:
+            if day_abbrev in results:
+                existing_data = results[day_abbrev]
+                for hour, data in day_data.items():
+                    existing_data[hour] = data
+            else:
+                results[day_abbrev] = day_data
+
+    for subdir in os.listdir("./SavedArea/raw"):
+        subdir_path = os.path.join("./SavedArea/raw", subdir)
+        if os.path.isdir(subdir_path):
+            process_directory(subdir_path)
+
+    output_path = "./SavedArea/normalDist/DayPerWeek/data.json"
+    with open(output_path, 'w') as output_file:
+        json.dump(results, output_file, indent=4)
+
+
+##################################################################################
+##################################################################################
+##################################################################################
+
 #Timer chunk
 days2run = 30
 times2run = (((days2run * 60) * 24) * days2run)
@@ -748,12 +804,14 @@ CurrentRun = 0
 while CurrentRun < times2run:
     TimeBeforeRun = datetime.now()
     clear_screen()
+    
     try: 
         WriteData()        
     except: 
         DataFails =+ 1
         print("WriteData failed! Good luck")
-        time.sleep(3) 
+        time.sleep(3)    
+
     ################################################
     try: 
         process_data()        
@@ -795,6 +853,13 @@ while CurrentRun < times2run:
     except: 
         DataFails =+ 1
         print("Process_data2csv failed! Good luck")
+        time.sleep(3) 
+    ################################################
+    try: 
+        DayPerWeek()
+    except: 
+        DataFails =+ 1
+        print("Process_DayPerWeek failed! Good luck")
         time.sleep(3) 
     ################################################
     
