@@ -584,7 +584,8 @@ def process_data():
 ##################################################################################
 ##################################################################################
 ##################################################################################
-
+'''
+##This is the old code. If bad shit happens, use this
 def process_data2csv():
     JsonFilePath = "./SavedArea/t_test/data.json"
     ExcelOutputPath = "./SavedArea/t_test/"
@@ -630,6 +631,56 @@ def process_data2csv():
 
                     # Write data to the CSV file
                     CSVData = f"{Dayname},{HourName},{SplitData2AimedDepartureTime},{SplitData2ExpectedDepartureTime},{SplitData2DeltaPredictedDepartureTime}"
+                    writer.writerow(CSVData.split(','))
+'''
+def process_data2csv():
+    JsonFilePath = "./SavedArea/t_test/data.json"
+    ExcelOutputPath = "./SavedArea/t_test/"
+    HEADER = ["Dayname", "HourName", "AimedDepartureTime", "ExpectedDepartureTime", "DeltaPredictedDepartureTime", "DeltaPredictedDepartureTimeSeconds"]
+
+    CSVARR = ["23 Brynseng T.csv", "23 Lysakerlokket.csv", "23 SimensbrAten.csv", "24 Radiumhospitalet.csv", "60 Tonsenhagen.csv", "60 Vippetangen.csv"]
+    for CurrentCSV in CSVARR:
+        try:
+            os.remove(ExcelOutputPath + CurrentCSV)
+            print("file removed")
+        except:
+            print("file not found")
+
+    # Opening JSON file
+    with open(JsonFilePath) as f:
+        data = json.load(f)
+
+    for Dayname in data:
+        for HourName in data[Dayname]:
+            for BusLine in data[Dayname][HourName]:
+                # Extract bus line name
+                bus_line_name = BusLine
+                normalized_bus_line_name = unicodedata.normalize('NFKD', bus_line_name).encode('ASCII', 'ignore').decode('utf-8')
+
+                BusCSVPath = ExcelOutputPath + normalized_bus_line_name + ".csv"
+                is_new_file = not os.path.exists(BusCSVPath)
+
+                with open(BusCSVPath, 'a', newline='', encoding='utf-8') as BusCSV:
+                    writer = csv.writer(BusCSV)
+
+                    # Add header to the CSV file only if it's a new file
+                    if is_new_file:
+                        writer.writerow(HEADER)
+
+                    for DataPoint in data[Dayname][HourName][BusLine]:
+                        if DataPoint == "AimedDepartureTime":
+                            SplitData2AimedDepartureTime = data[Dayname][HourName][BusLine][DataPoint].split("T")[1].split("+")[0]
+                        elif DataPoint == "ExpectedDepartureTime":
+                            SplitData2ExpectedDepartureTime = data[Dayname][HourName][BusLine][DataPoint].split("T")[1].split("+")[0]
+                        elif DataPoint == "DeltaPredictedDepartureTime":
+                            SplitData2DeltaPredictedDepartureTime = data[Dayname][HourName][BusLine][DataPoint]
+                            # Convert DeltaPredictedDepartureTime to seconds
+                            time_parts = SplitData2DeltaPredictedDepartureTime.split(":")
+                            delta_seconds = int(time_parts[0]) * 3600 + int(time_parts[1]) * 60 + int(time_parts[2])
+                            DeltaPredictedDepartureTimeSeconds = str(delta_seconds)
+
+                    # Write data to the CSV file
+                    CSVData = f"{Dayname},{HourName},{SplitData2AimedDepartureTime},{SplitData2ExpectedDepartureTime},{SplitData2DeltaPredictedDepartureTime},{DeltaPredictedDepartureTimeSeconds}"
                     writer.writerow(CSVData.split(','))
 ##################################################################################
 ##################################################################################
@@ -697,13 +748,14 @@ CurrentRun = 0
 while CurrentRun < times2run:
     TimeBeforeRun = datetime.now()
     clear_screen()
+    '''
     try: 
         WriteData()        
     except: 
         DataFails =+ 1
         print("WriteData failed! Good luck")
         time.sleep(3) 
-    
+    '''
     ################################################
     try: 
         process_data()        
