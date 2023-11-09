@@ -639,7 +639,7 @@ def process_data2csv():
     ExcelOutputPath = "./SavedArea/t_test/"
     HEADER = ["Dayname", "HourName", "AimedDepartureTime", "ExpectedDepartureTime", "DeltaPredictedDepartureTime", "DeltaPredictedDepartureTimeSeconds"]
 
-    CSVARR = ["23 Brynseng T.csv", "23 Lysakerlokket.csv", "23 SimensbrAten.csv", "24 Radiumhospitalet.csv", "60 Tonsenhagen.csv", "60 Vippetangen.csv"]
+    CSVARR = ["23 Brynseng T.csv", "23 Lysakerlokket.csv", "23 Simensbraten.csv", "24 Radiumhospitalet.csv", "60 Tonsenhagen.csv", "60 Vippetangen.csv"]
     for CurrentCSV in CSVARR:
         try:
             os.remove(ExcelOutputPath + CurrentCSV)
@@ -811,7 +811,7 @@ while CurrentRun < times2run:
         DataFails =+ 1
         print("WriteData failed! Good luck")
         time.sleep(3)    
-
+    
     ################################################
     try: 
         process_data()        
