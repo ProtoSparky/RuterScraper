@@ -412,8 +412,8 @@ def NormalDistHour():
                 # Calculate median time in seconds
                 median_time_seconds = median(delta_times)
                 
-                # Add data to hour_data dictionary
-                hour_data[hour] = {
+                # Add data to hour_data dictionary with hour + 1
+                hour_data[hour + 1] = {
                     "AvgTime": str(timedelta(seconds=avg_time_seconds)),
                     "AvgTimeSeconds": avg_time_seconds,
                     "MaxTime": str(timedelta(seconds=max_time_seconds)),
@@ -581,7 +581,6 @@ def process_data():
         json.dump(sorted_result_data, output_file, ensure_ascii=False, indent=4)
 
     print("Data saved to", SavedData)
-
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -753,7 +752,7 @@ def DayPerWeek():
     def process_directory(directory):
         nonlocal results
         day_abbrev = directory.split(os.path.sep)[-1].split('-')[0]
-        day_data = results.get(day_abbrev, {})
+        day_data = results.get(day_abbrev, OrderedDict())
 
         for filename in os.listdir(directory):
             if filename.endswith(".json"):
@@ -764,16 +763,17 @@ def DayPerWeek():
                     delta_times = [time.total_seconds() for time in [parse_time(bus["DeltaPredictedDepartureTime"]) for bus in data]]
                     avg_delta_time = str(timedelta(seconds=mean(delta_times)))
 
-                    hour = int(filename.split('-')[1])
+                    # Modify this line to add 1 to the extracted hour
+                    hour = str(int(filename.split('-')[1]) + 1)
 
-                    hour_data = day_data.get(str(hour), {"AvgTime": "0:00:00", "MedianTime": "0:00:00", "MaxTime": "0:00:00"})
+                    hour_data = day_data.get(hour, {"AvgTime": "0:00:00", "MedianTime": "0:00:00", "MaxTime": "0:00:00"})
                     hour_data["AvgTime"] = avg_delta_time
                     hour_data["AvgTimeSeconds"] = int(mean(delta_times))
                     hour_data["MedianTime"] = str(timedelta(seconds=median(delta_times)))
                     hour_data["MedianTimeSeconds"] = int(median(delta_times))
                     hour_data["MaxTime"] = str(timedelta(seconds=max(delta_times, default=0)))
                     hour_data["MaxTimeSeconds"] = int(max(delta_times, default=0))
-                    day_data[str(hour)] = hour_data
+                    day_data[hour] = hour_data
 
         if day_data:
             if day_abbrev in results:
@@ -792,7 +792,6 @@ def DayPerWeek():
     with open(output_path, 'w') as output_file:
         json.dump(results, output_file, indent=4)
 
-
 ##################################################################################
 ##################################################################################
 ##################################################################################
@@ -804,14 +803,14 @@ CurrentRun = 0
 while CurrentRun < times2run:
     TimeBeforeRun = datetime.now()
     clear_screen()
-    
+    '''
     try: 
         WriteData()        
     except: 
         DataFails =+ 1
         print("WriteData failed! Good luck")
         time.sleep(3)    
-    
+    '''
     ################################################
     try: 
         process_data()        
