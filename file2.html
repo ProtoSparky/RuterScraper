@@ -11,15 +11,16 @@
 </head>
 <body>
     <select name="csvFileInput" id="csvFileSelector">
-        <option value="./SavedArea/t-test/23 Brynseng T.csv">23 Brynseng T</option>
-        <option value="./SavedArea/t-test/23 Lysakerlokket.csv">23 Lysakerlokket</option>
-        <option value="./SavedArea/t-test/23 Simensbråten.csv">23 Simensbråten</option>
-        <option value="./SavedArea/t-test/24 Radiumshospitalet.csv">24 Radiumshospitalet</option>
-        <option value="./SavedArea/t-test/60 Tonsenhagen.csv">60 Tonsenhagen</option>
-        <option value="./SavedArea/t-test/60 Vippetangen.csv">60 Vippetangen</option>
+        <option value="./SavedArea/t_test/23%20Brynseng%20T.csv">23 Brynseng T</option>
+        <option value="./SavedArea/t_test/23%20Lysakerlokket.csv">23 Lysakerlokket</option>
+        <option value="./SavedArea/t_test/23%20Simensbraten.csv">23 Simensbråten</option>
+        <option value="./SavedArea/t_test/24%20Radiumhospitalet.csv">24 Radiumshospitalet</option>
+        <option value="./SavedArea/t_test/60%20Tonsenhagen.csv">60 Tonsenhagen</option>
+        <option value="./SavedArea/t_test/60%20Vippetangen.csv">60 Vippetangen</option>
     </select>
     
     <button onclick="handleFileSelect()">Load CSV</button>
+    <p>Dataen er i sekunder forsinkelse</p>
 
     <script>
         let charts = [];
@@ -31,6 +32,7 @@
             const selectedFilePath = selector.value;
 
             // Fetch the CSV file content
+            console.log(selectedFilePath);
             const response = await fetch(selectedFilePath);
             const csvData = await response.text();
 

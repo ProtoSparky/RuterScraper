@@ -810,6 +810,7 @@ while CurrentRun < times2run:
         DataFails =+ 1
         print("WriteData failed! Good luck")
         time.sleep(3)    
+    
     ################################################
     try: 
         process_data()        
