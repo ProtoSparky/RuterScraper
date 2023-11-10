@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Graphs</title>
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include Papa.parse library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <input type="file" id="csvFileInput" accept=".csv">
+    
+    <script>
+        let charts = [];
+
+        document.getElementById('csvFileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            clearCharts();
+
+            const file = event.target.files[0];
+            if (file) {
+                // Read the CSV file
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const csvData = e.target.result;
+                    parseCSV(csvData);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function parseCSV(csvData) {
+            // Parse CSV using Papa.parse
+            Papa.parse(csvData, {
+                header: true,
+                dynamicTyping: true,
+                complete: function (results) {
+                    // Extract data from the parsed CSV
+                    const data = results.data;
+                    const days = [...new Set(data.map(item => item.Dayname))];
+
+                    // Create a chart for each day
+                    days.forEach(day => {
+                        const dayData = data.filter(item => item.Dayname === day);
+                        createChart(day, dayData);
+                    });
+                }
+            });
+        }
+
+        function createChart(day, data) {
+            // Create a canvas for each day
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 400;
+            document.body.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            const deltaTimes = data.map(item => item.DeltaPredictedDepartureTimeSeconds);
+
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.HourName),
+                    datasets: [{
+                        label: day,
+                        data: deltaTimes,
+                        backgroundColor: getRandomColor(),
+                        borderColor: getRandomColor(),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            charts.push(chart);
+        }
+
+        function clearCharts() {
+            // Clear the existing charts
+            charts.forEach(chart => {
+                chart.destroy();
+            });
+
+            // Remove the canvas elements
+            charts = [];
+            const canvases = document.querySelectorAll('canvas');
+            canvases.forEach(canvas => {
+                canvas.remove();
+            });
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+    </script>
+</body>
+</html>

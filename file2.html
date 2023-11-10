@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Graphs</title>
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include Papa.parse library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <select name="csvFileInput" id="csvFileSelector">
+        <option value="./SavedArea/t-test/23 Brynseng T.csv">23 Brynseng T</option>
+        <option value="./SavedArea/t-test/23 Lysakerlokket.csv">23 Lysakerlokket</option>
+        <option value="./SavedArea/t-test/23 Simensbråten.csv">23 Simensbråten</option>
+        <option value="./SavedArea/t-test/24 Radiumshospitalet.csv">24 Radiumshospitalet</option>
+        <option value="./SavedArea/t-test/60 Tonsenhagen.csv">60 Tonsenhagen</option>
+        <option value="./SavedArea/t-test/60 Vippetangen.csv">60 Vippetangen</option>
+    </select>
+    
+    <button onclick="handleFileSelect()">Load CSV</button>
+
+    <script>
+        let charts = [];
+
+        async function handleFileSelect() {
+            clearCharts();
+
+            const selector = document.getElementById('csvFileSelector');
+            const selectedFilePath = selector.value;
+
+            // Fetch the CSV file content
+            const response = await fetch(selectedFilePath);
+            const csvData = await response.text();
+
+            // Parse and process the CSV data
+            parseCSV(csvData);
+        }
+
+        function parseCSV(csvData) {
+            // Parse CSV using Papa.parse
+            Papa.parse(csvData, {
+                header: true,
+                dynamicTyping: true,
+                complete: function (results) {
+                    // Extract data from the parsed CSV
+                    const data = results.data;
+                    const days = [...new Set(data.map(item => item.Dayname))];
+
+                    // Create a chart for each day
+                    days.forEach(day => {
+                        const dayData = data.filter(item => item.Dayname === day);
+                        createChart(day, dayData);
+                    });
+                }
+            });
+        }
+
+        function createChart(day, data) {
+            // Create a canvas for each day
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 400;
+            document.body.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            const deltaTimes = data.map(item => item.DeltaPredictedDepartureTimeSeconds);
+
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.HourName),
+                    datasets: [{
+                        label: day,
+                        data: deltaTimes,
+                        backgroundColor: getRandomColor(),
+                        borderColor: getRandomColor(),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            charts.push(chart);
+        }
+
+        function clearCharts() {
+            // Clear the existing charts
+            charts.forEach(chart => {
+                chart.destroy();
+            });
+
+            // Remove the canvas elements
+            charts = [];
+            const canvases = document.querySelectorAll('canvas');
+            canvases.forEach(canvas => {
+                canvas.remove();
+            });
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+    </script>
+</body>
+</html>
