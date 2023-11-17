@@ -795,6 +795,110 @@ def DayPerWeek():
 ##################################################################################
 ##################################################################################
 ##################################################################################
+def convert_abbrev(date):
+    date_object = datetime.strptime(date, '%d.%m.%Y')
+    abbreviated_day = date_object.strftime('%a')
+    return abbreviated_day
+
+def round_to_nearest_hour(hour):
+    rounded_hour = (datetime.strptime(hour, '%H:%M:%S') + timedelta(minutes=30)).replace(second=0, microsecond=0, minute=0)
+    return rounded_hour.strftime('%H:%M')
+
+def SaveCSVinRushTime():
+    CSVlocArr = ["23 Brynseng T.csv","23 Lysakerlokket.csv", "23 Simensbraten.csv", "24 Radiumhospitalet.csv", "60 Tonsenhagen.csv", "60 Vippetangen.csv"]
+    CSVPath = "./SavedArea/t_test/"
+    CSVExportPath = "./SavedArea/t_test/dated/rush/"
+    RushArray = ["07:00", "08:00", "09:00", "15:00", "16:00", "17:00", "18:00"]
+    HEADER = ["Dayname","CurrentAbbredDay", "HourName", "AimedDepartureTime", "ExpectedDepartureTime", "DeltaPredictedDepartureTime", "DeltaPredictedDepartureTimeSeconds"]
+    
+    for CurrentCSVlocArr in CSVlocArr:
+        CurrentCSVloc = CSVPath + CurrentCSVlocArr
+        CurrentCSVExportPath = CSVExportPath + CurrentCSVlocArr
+
+        try:
+            os.remove(CurrentCSVExportPath)
+        except:
+            print("file not found")
+
+        with open(CurrentCSVloc, 'r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for row in csv_reader:
+                Dayname = row['Dayname']
+                OriginalHourName = row['HourName']
+                AimedDepartureTime = row['AimedDepartureTime']
+                ExpectedDepartureTime = row['ExpectedDepartureTime']
+                DeltaPredictedDepartureTime = row['DeltaPredictedDepartureTime']
+                DeltaPredictedDepartureTimeSeconds = row['DeltaPredictedDepartureTimeSeconds']
+
+                CurrentAbbredDay = convert_abbrev(Dayname)
+
+                if CurrentAbbredDay in ["Mon", "Tue", "Wed", "Thu", "Fri"]:
+                    RoundedHourName = round_to_nearest_hour(OriginalHourName)
+                    
+                    if RoundedHourName in RushArray:
+                        is_new_file = not os.path.exists(CurrentCSVExportPath)
+                        with open(CurrentCSVExportPath, 'a', newline='', encoding='utf-8') as BusCSV:
+                            writer = csv.writer(BusCSV)
+
+                            if is_new_file:
+                                writer.writerow(HEADER)
+
+                            CSVData = f"{Dayname},{CurrentAbbredDay},{OriginalHourName},{AimedDepartureTime},{ExpectedDepartureTime},{DeltaPredictedDepartureTime},{DeltaPredictedDepartureTimeSeconds}"
+                            writer.writerow(CSVData.split(','))
+
+
+def SaveCSVinNonRushTime():
+    CSVlocArr = ["23 Brynseng T.csv","23 Lysakerlokket.csv", "23 Simensbraten.csv", "24 Radiumhospitalet.csv", "60 Tonsenhagen.csv", "60 Vippetangen.csv"]
+    CSVPath = "./SavedArea/t_test/"
+    CSVExportPath = "./SavedArea/t_test/dated/nonrush/"
+    #RushArray = ["07:00", "08:00", "09:00", "15:00", "16:00", "17:00", "18:00"]
+    RushArray = ["00:00","01:00","02:00","03:00","04:00","05:00","06:00","19:00","20:00","21:00","22:00","23:00"]
+    HEADER = ["Dayname","CurrentAbbredDay", "HourName", "AimedDepartureTime", "ExpectedDepartureTime", "DeltaPredictedDepartureTime", "DeltaPredictedDepartureTimeSeconds"]
+    
+    for CurrentCSVlocArr in CSVlocArr:
+        CurrentCSVloc = CSVPath + CurrentCSVlocArr
+        CurrentCSVExportPath = CSVExportPath + CurrentCSVlocArr
+
+        try:
+            os.remove(CurrentCSVExportPath)
+        except:
+            print("file not found")
+
+        with open(CurrentCSVloc, 'r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for row in csv_reader:
+                Dayname = row['Dayname']
+                OriginalHourName = row['HourName']
+                AimedDepartureTime = row['AimedDepartureTime']
+                ExpectedDepartureTime = row['ExpectedDepartureTime']
+                DeltaPredictedDepartureTime = row['DeltaPredictedDepartureTime']
+                DeltaPredictedDepartureTimeSeconds = row['DeltaPredictedDepartureTimeSeconds']
+
+                CurrentAbbredDay = convert_abbrev(Dayname)
+
+                if CurrentAbbredDay in ["Mon", "Tue", "Wed", "Thu", "Fri"]:
+                    RoundedHourName = round_to_nearest_hour(OriginalHourName)
+                    
+                    if RoundedHourName in RushArray:
+                        is_new_file = not os.path.exists(CurrentCSVExportPath)
+                        with open(CurrentCSVExportPath, 'a', newline='', encoding='utf-8') as BusCSV:
+                            writer = csv.writer(BusCSV)
+
+                            if is_new_file:
+                                writer.writerow(HEADER)
+
+                            CSVData = f"{Dayname},{CurrentAbbredDay},{OriginalHourName},{AimedDepartureTime},{ExpectedDepartureTime},{DeltaPredictedDepartureTime},{DeltaPredictedDepartureTimeSeconds}"
+                            writer.writerow(CSVData.split(','))
+                    
+
+        
+
+
+
+##################################################################################
+##################################################################################
+##################################################################################
+
 
 #Timer chunk
 days2run = 30
@@ -807,7 +911,7 @@ while CurrentRun < times2run:
     try: 
         WriteData()        
     except: 
-        DataFails =+ 1
+        DataFails += 1
         print("WriteData failed! Good luck")
         time.sleep(3)    
     
@@ -815,61 +919,78 @@ while CurrentRun < times2run:
     try: 
         process_data()        
     except: 
-        DataFails =+ 1
+        DataFails += 1
         print("Process_Data() failed! Good luck")
         time.sleep(3)
     ################################################ 
     try: 
         SlowestPublicBusCode()
     except: 
-        DataFails =+ 1    
+        DataFails += 1    
         print("SlowestPublicBusCode failed! Good luck")
         time.sleep(3) 
     ################################################
     try: 
         NormalDistHour()
     except: 
-        DataFails =+ 1
+        DataFails += 1
         print("NormalDistHour failed! Good luck")
         time.sleep(3) 
     ################################################
     try: 
         NormalDistWeekRaw()
     except: 
-        DataFails =+ 1
+        DataFails += 1
         print("NormalDistWeekRaw failed! Good luck")
         time.sleep(3) 
     ################################################
     try: 
         NormalDistWeek()
     except: 
-        DataFails =+ 1
+        DataFails += 1
         print("NormalDistWeek failed! Good luck")
         time.sleep(3) 
     ################################################
     try: 
         process_data2csv()
     except: 
-        DataFails =+ 1
+        DataFails += 1
         print("Process_data2csv failed! Good luck")
         time.sleep(3) 
     ################################################
     try: 
         DayPerWeek()
     except: 
-        DataFails =+ 1
+        DataFails += 1
         print("Process_DayPerWeek failed! Good luck")
         time.sleep(3) 
+    ################################################
+    try: 
+        SaveCSVinNonRushTime()      
+    except: 
+        DataFails += 1
+        print("SaveCSVinNonRushTime() failed! Good luck")
+        time.sleep(3)    
+    
+    ################################################
+    try: 
+        SaveCSVinRushTime()      
+    except: 
+        DataFails += 1
+        print("SaveCSVinRushTime() failed! Good luck")
+        time.sleep(3)    
+    
     ################################################
     
     stats(TimeBeforeRun)
     clear_screen()
     print("sleep for 60s")
     print("current run: " + str(CurrentRun))
-    time.sleep(60)  
+    time.sleep(33)  
     CurrentRun += 1 
 ##################################################################################
 ##################################################################################
 ##################################################################################
+
 
 

@@ -17,10 +17,26 @@
         <option value="./SavedArea/t_test/24%20Radiumhospitalet.csv">24 Radiumshospitalet</option>
         <option value="./SavedArea/t_test/60%20Tonsenhagen.csv">60 Tonsenhagen</option>
         <option value="./SavedArea/t_test/60%20Vippetangen.csv">60 Vippetangen</option>
+
+        <option value="./SavedArea/t_test/dated/rush/23%20Brynseng%20T.csv">23 Brynseng T (rush)</option>
+        <option value="./SavedArea/t_test/dated/rush/23%20Lysakerlokket.csv">23 Lysakerlokket (rush)</option>
+        <option value="./SavedArea/t_test/dated/rush/23%20Simensbraten.csv">23 Simensbråten (rush)</option>
+        <option value="./SavedArea/t_test/dated/rush/24%20Radiumhospitalet.csv">24 Radiumshospitalet (rush)</option>
+        <option value="./SavedArea/t_test/dated/rush/60%20Tonsenhagen.csv">60 Tonsenhagen (rush)</option>
+        <option value="./SavedArea/t_test/dated/rush/60%20Vippetangen.csv">60 Vippetangen (rush)</option>
+
+        <option value="./SavedArea/t_test/dated/nonrush/23%20Brynseng%20T.csv">23 Brynseng T (nonrush)</option>
+        <option value="./SavedArea/t_test/dated/nonrush/23%20Lysakerlokket.csv">23 Lysakerlokket (nonrush)</option>
+        <option value="./SavedArea/t_test/dated/nonrush/23%20Simensbraten.csv">23 Simensbråten (nonrush)</option>
+        <option value="./SavedArea/t_test/dated/nonrush/24%20Radiumhospitalet.csv">24 Radiumshospitalet (nonrush)</option>
+        <option value="./SavedArea/t_test/dated/nonrush/60%20Tonsenhagen.csv">60 Tonsenhagen (nonrush)</option>
+        <option value="./SavedArea/t_test/dated/nonrush/60%20Vippetangen.csv">60 Vippetangen (nonrush)</option>
     </select>
     
     <button onclick="handleFileSelect()">Load CSV</button>
     <p>Dataen er i sekunder forsinkelse</p>
+    <p>rush er rushtid man-fre 7-9 og 15-18</p>
+    <p>norush er ikke rushtid man-fre 0-6 og 19-23</p>
 
     <script>
         let charts = [];
@@ -76,8 +92,8 @@
                     datasets: [{
                         label: day,
                         data: deltaTimes,
-                        backgroundColor: getRandomColor(),
-                        borderColor: getRandomColor(),
+                        backgroundColor: "#000000",
+                        borderColor: "#000000",
                         borderWidth: 1
                     }]
                 },
